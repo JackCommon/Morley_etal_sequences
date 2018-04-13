@@ -10,11 +10,11 @@ library(relaimpo)
 library(dplyr)
 library(magrittr)
 
-setwd("~/Documents/OneDrive - University of Exeter/Data/Dan's coevo/")
+setwd("./phage_survival/analysis_data/phage_surv.csv")
 
 ## Survival analyses
 
-phage<-read.csv("./phage_surv.csv", header=T)
+phage<-read.csv("./phage_survival/analysis_data/phage_surv.csv", header=T)
 phage$replicate %<>% as.factor()
 phage$treatment %<>% as.factor()
 attach(phage)
@@ -65,9 +65,3 @@ write.table(HRs, file=clip, sep='\t', row.names = F, col.names = F)
 close(clip)
 
 plot(survfit(cosph.mod), xlim=c(0,30), lty=c(1,2,3))
-
-residuals(cosph.mod, type = c("schoenfeld"))
-print(cosph.mod, print.rmean=T)
-
-basehaz(cosph.mod)
-survfit(cosph.mod, newdata = phage, se.fit = T)
