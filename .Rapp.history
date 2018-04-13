@@ -1,0 +1,129 @@
+citation()
+setwd("~/Documents/OneDrive - University of Exeter/Data/Dan's coevo/")
+phage<-read.csv("./phage_surv.csv", header=T)
+phage<-read.csv("./phage_surv.csv", header=T)
+phage<-read.csv("./phage_surv.csv", header=T)
+phage$replicate %<>% as.factor()#
+phage$treatment %<>% as.factor()#
+attach(phage)#
+names(phage)
+library(magrittr)
+library(survival)#
+library(rms)#
+library(car)#
+library(multcomp)#
+library(relaimpo)#
+library(dplyr)#
+library(magrittr)
+phage$replicate %<>% as.factor()
+phage$treatment %<>% as.factor()
+attach(phage)
+jpeg("survplot.jpg", res=300)
+jpeg("survplot.jpg", res=300)
+par(mfrow=c(1,1), xpd=TRUE, oma=c(1,1,1,1), mai=c(1.02,.1,.82,0), bty="l", pty="s")
+plot(survfit(Surv(phage$time_to_death,phage$status)~treatment), lty=c(1,3,5,6),
+lwd=c(1.5,1.5,1.5), ylab="", xlab="", axes=FALSE, ylim=c(0,1), xlim=c(0,30))
+jpeg("survplot.jpg", res=300)#
+par(mfrow=c(1,1), xpd=TRUE, oma=c(1,1,1,1), mai=c(1.02,.1,.82,0), bty="l", pty="s")#
+#
+plot(survfit(Surv(phage$time_to_death,phage$status)~treatment), lty=c(1,3,5,6), #
+     lwd=c(1.5,1.5,1.5), ylab="", xlab="", axes=FALSE, ylim=c(0,1), xlim=c(0,30))#
+#
+axis(1, tcl=-0.1, pos=0, cex.axis=1)#
+axis(1, at=15, lab="Transfer", tcl=0, line=2, cex.axis=1.1)#
+#
+axis(2, tcl=-0.1, pos=0, cex.axis=1, las=2)#
+axis(2, at=0.5, lab="Proportion of replicates with surviving phage", line=3,cex.axis=1.1, tcl=0)#
+#
+legend(20,1, bty="o", title=c("Treatment"),#
+       legend=c("10^9", "10^8", "10^7", "10^6"),#
+       lty=c(6,5,3,1), lwd=c(1.5,1.5,1.5), cex=1.1, adj=0)#
+#
+dev.off()
+par(mfrow=c(1,1), xpd=TRUE, oma=c(1,1,1,1), mai=c(1.02,.1,.82,0), bty="l", pty="s")
+par(mfrow=c(1,1), xpd=TRUE, oma=c(1,1,1,1), mai=c(1.02,.1,.82,0), bty="l", pty="s")
+jpeg("survplot.jpg", res=300)
+dev.off()
+par(mfrow=c(1,1), xpd=TRUE, oma=c(1,1,1,1), mai=c(1.02,.1,.82,0), bty="l", pty="s")
+plot(survfit(Surv(phage$time_to_death,phage$status)~treatment), lty=c(1,3,5,6), #
+     lwd=c(1.5,1.5,1.5), ylab="", xlab="", axes=FALSE, ylim=c(0,1), xlim=c(0,30))
+jpeg("survplot.jpg", res=300, width=4, height=4)#
+par(mfrow=c(1,1), xpd=TRUE, oma=c(1,1,1,1), mai=c(1.02,.1,.82,0), bty="l", pty="s")#
+#
+plot(survfit(Surv(phage$time_to_death,phage$status)~treatment), lty=c(1,3,5,6), #
+     lwd=c(1.5,1.5,1.5), ylab="", xlab="", axes=FALSE, ylim=c(0,1), xlim=c(0,30))#
+#
+axis(1, tcl=-0.1, pos=0, cex.axis=1)#
+axis(1, at=15, lab="Transfer", tcl=0, line=2, cex.axis=1.1)#
+#
+axis(2, tcl=-0.1, pos=0, cex.axis=1, las=2)#
+axis(2, at=0.5, lab="Proportion of replicates with surviving phage", line=3,cex.axis=1.1, tcl=0)#
+#
+legend(20,1, bty="o", title=c("Treatment"),#
+       legend=c("10^9", "10^8", "10^7", "10^6"),#
+       lty=c(6,5,3,1), lwd=c(1.5,1.5,1.5), cex=1.1, adj=0)#
+#
+dev.off()
+jpeg("survplot.jpg", res=300, width=4, height=4, units="in")
+par(mfrow=c(1,1), xpd=TRUE, oma=c(1,1,1,1), mai=c(1.02,.1,.82,0), bty="l", pty="s")
+plot(survfit(Surv(phage$time_to_death,phage$status)~treatment), lty=c(1,3,5,6),
+lwd=c(1.5,1.5,1.5), ylab="", xlab="", axes=FALSE, ylim=c(0,1), xlim=c(0,30))
+axis(1, tcl=-0.1, pos=0, cex.axis=1)
+axis(1, at=15, lab="Transfer", tcl=0, line=2, cex.axis=1.1)
+axis(2, tcl=-0.1, pos=0, cex.axis=1, las=2)
+axis(2, at=0.5, lab="Proportion of replicates with surviving phage", line=3,cex.axis=1.1, tcl=0)
+legend(20,1, bty="o", title=c("Treatment"),
+legend=c("10^9", "10^8", "10^7", "10^6"),
+lty=c(6,5,3,1), lwd=c(1.5,1.5,1.5), cex=1.1, adj=0)
+dev.off()
+jpeg("survplot.jpg", res=300, width=7, height=4, units="in")#
+par(mfrow=c(1,1), xpd=TRUE, oma=c(1,1,1,1), mai=c(1.02,.1,.82,0), bty="l", pty="s")#
+#
+plot(survfit(Surv(phage$time_to_death,phage$status)~treatment), lty=c(1,3,5,6), #
+     lwd=c(1.5,1.5,1.5), ylab="", xlab="", axes=FALSE, ylim=c(0,1), xlim=c(0,30))#
+#
+axis(1, tcl=-0.1, pos=0, cex.axis=1)#
+axis(1, at=15, lab="Transfer", tcl=0, line=2, cex.axis=1.1)#
+#
+axis(2, tcl=-0.1, pos=0, cex.axis=1, las=2)#
+axis(2, at=0.5, lab="Proportion of replicates with surviving phage", line=3,cex.axis=1.1, tcl=0)#
+#
+legend(20,1, bty="o", title=c("Treatment"),#
+       legend=c("10^9", "10^8", "10^7", "10^6"),#
+       lty=c(6,5,3,1), lwd=c(1.5,1.5,1.5), cex=1.1, adj=0)#
+#
+dev.off()
+jpeg("survplot.jpg", res=300, width=7, height=10, units="in")#
+par(mfrow=c(1,1), xpd=TRUE, oma=c(1,1,1,1), mai=c(1.02,.1,.82,0), bty="l", pty="s")#
+#
+plot(survfit(Surv(phage$time_to_death,phage$status)~treatment), lty=c(1,3,5,6), #
+     lwd=c(1.5,1.5,1.5), ylab="", xlab="", axes=FALSE, ylim=c(0,1), xlim=c(0,30))#
+#
+axis(1, tcl=-0.1, pos=0, cex.axis=1)#
+axis(1, at=15, lab="Transfer", tcl=0, line=2, cex.axis=1.1)#
+#
+axis(2, tcl=-0.1, pos=0, cex.axis=1, las=2)#
+axis(2, at=0.5, lab="Proportion of replicates with surviving phage", line=3,cex.axis=1.1, tcl=0)#
+#
+legend(20,1, bty="o", title=c("Treatment"),#
+       legend=c("10^9", "10^8", "10^7", "10^6"),#
+       lty=c(6,5,3,1), lwd=c(1.5,1.5,1.5), cex=1.1, adj=0)#
+#
+dev.off()
+jpeg("survplot.jpg", res=300, width=15, height=10, units="in")#
+par(mfrow=c(1,1), xpd=TRUE, oma=c(1,1,1,1), mai=c(1.02,.1,.82,0), bty="l", pty="s")#
+#
+plot(survfit(Surv(phage$time_to_death,phage$status)~treatment), lty=c(1,3,5,6), #
+     lwd=c(1.5,1.5,1.5), ylab="", xlab="", axes=FALSE, ylim=c(0,1), xlim=c(0,30))#
+#
+axis(1, tcl=-0.1, pos=0, cex.axis=1)#
+axis(1, at=15, lab="Transfer", tcl=0, line=2, cex.axis=1.1)#
+#
+axis(2, tcl=-0.1, pos=0, cex.axis=1, las=2)#
+axis(2, at=0.5, lab="Proportion of replicates with surviving phage", line=3,cex.axis=1.1, tcl=0)#
+#
+legend(20,1, bty="o", title=c("Treatment"),#
+       legend=c("10^9", "10^8", "10^7", "10^6"),#
+       lty=c(6,5,3,1), lwd=c(1.5,1.5,1.5), cex=1.1, adj=0)#
+#
+dev.off()
