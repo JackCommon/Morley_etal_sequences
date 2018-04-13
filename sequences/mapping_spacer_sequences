@@ -2,7 +2,8 @@
 
 PARSE RAW .SEQ FILES
   1. In the Terminal, change to the directory with the seq files
-  2. Run collate_seq_files.py (may need to adapt the source code if file headers contain unusual characters that will mess with the          BLASTN search)
+  2. Run collate_seq_files.py, (./sequences/code/)
+     (may need to adapt the source code if file headers contain unusual characters that will mess with the BLASTN search)
   3. The fasta file will be saved in that directory
 
 BLASTN
