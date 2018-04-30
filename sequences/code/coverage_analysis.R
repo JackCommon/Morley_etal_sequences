@@ -25,7 +25,9 @@ for(i in seq(1,212,1)){
 }
 data$SpacerMiddle <- medians
 
-## Coverage graph
+## Coverage graphs
+library(ggridges)
+
 timepoint_names_facet = list(
   't1' = '1 d.p.i.',
   't4' = '4 d.p.i.',
@@ -42,7 +44,9 @@ plot1 <- ggplot(aes(x=SpacerMiddle), data=data)+
   #geom_histogram(aes(fill=Locus), 
   #               position=position_dodge(),
   #               bins=50)+
-  geom_dotplot(aes(fill=Locus), position=position_dodge(1))+
+  geom_dotplot(fill="white", alpha=0.5, colour="black",
+               method="histodot", binwidth = 10,
+               dotsize=200)+
   coord_cartesian(xlim=c(seq(1,34704,1)))+
   facet_grid(~Timepoint, labeller = timepoint_labeller)+
   
@@ -62,8 +66,8 @@ plot1 <- ggplot(aes(x=SpacerMiddle), data=data)+
   theme(legend.text = element_text(size=14))+
   
   theme(axis.line.y = element_blank(),
-        axis.text.y = element_blank(),
-        axis.ticks.y = element_blank())+
+     axis.text.y = element_blank(),
+       axis.ticks.y = element_blank())+
   
   theme(panel.grid.minor= element_blank(),
         panel.grid.major = element_blank())
