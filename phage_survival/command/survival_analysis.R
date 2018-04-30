@@ -26,7 +26,7 @@ plot(KM, ylab="Survivorship", xlab="Transfer")
 # KM ~ group
 summary(KM<-survfit(Surv(time_to_death,status)~treatment))
 
-jpeg("survplot.jpg", width=20, height=15, units="in", res=300)
+jpeg("./figs/survplot.jpg", width=20, height=15, units="in", res=300)
 par(mfrow=c(1,1), xpd=TRUE, oma=c(1,1,1,1), mai=c(1.02,.1,.82,0), bty="l", pty="s")
 
 plot(survfit(Surv(phage$time_to_death,phage$status)~treatment), lty=c(1,3,5,6), 
@@ -39,7 +39,10 @@ axis(2, tcl=-0.1, pos=0, cex.axis=1, las=2, lwd=c(3), cex.axis = 2)
 axis(2, at=0.5, lab="Proportion of replicates\nwith surviving phage", line=5, cex.axis=3, tcl=0)
 
 legend(20,1, bty="o", title=c("Treatment"),
-       legend=c("10^9", "10^8", "10^7", "10^6"),
+       legend=c(expression("10"*{}^{9}*""), 
+                expression("10"*{}^{8}*""), 
+                expression("10"*{}^{7}*""), 
+                expression("10"*{}^{6}*"")),
        lty=c(6,5,3,1), lwd=c(5,5,5,5), cex=3, adj=0)
 
 dev.off()
