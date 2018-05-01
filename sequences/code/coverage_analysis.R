@@ -48,7 +48,7 @@ plot1 <- ggplot(aes(x=SpacerMiddle), data=data)+
                method="histodot", binwidth = 10,
                dotsize=200)+
   coord_cartesian(xlim=c(seq(1,34704,1)))+
-  facet_grid(~Timepoint, labeller = timepoint_labeller)+
+  facet_wrap(~Timepoint, labeller = timepoint_labeller)+
   theme_bw()+
   labs(x="Position on phage genome", y="")+
   scale_x_continuous(breaks=c(0,10000,20000,30000,34704))+
@@ -77,4 +77,4 @@ detach("package:cowplot")
 
 ggsave("coverage_plot.png", plot1, path="./figs/",
        device="png", dpi=300,
-       height=15, width=30, unit=c("cm"))
+       height=13, width=30, unit=c("cm"))
