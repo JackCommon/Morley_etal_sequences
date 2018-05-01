@@ -12,7 +12,7 @@ library(magrittr)
 library(cowplot)
 
 ## Data
-data = read.csv("./sequences/all_spacer_data.csv", header=T)
+data = read.csv("./sequences/summary_data/all_spacer_data.csv", header=T)
 data$Replicate %<>% as.factor
 data$Clone %<>% as.factor()
 data$SpacerNumber %<>% as.factor()
@@ -49,7 +49,6 @@ plot1 <- ggplot(aes(x=SpacerMiddle), data=data)+
                dotsize=200)+
   coord_cartesian(xlim=c(seq(1,34704,1)))+
   facet_grid(~Timepoint, labeller = timepoint_labeller)+
-  
   theme_bw()+
   labs(x="Position on phage genome", y="")+
   scale_x_continuous(breaks=c(0,10000,20000,30000,34704))+
@@ -66,8 +65,8 @@ plot1 <- ggplot(aes(x=SpacerMiddle), data=data)+
   theme(legend.text = element_text(size=14))+
   
   theme(axis.line.y = element_blank(),
-     axis.text.y = element_blank(),
-       axis.ticks.y = element_blank())+
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank())+
   
   theme(panel.grid.minor= element_blank(),
         panel.grid.major = element_blank())
@@ -78,4 +77,4 @@ detach("package:cowplot")
 
 ggsave("coverage_plot.png", plot1, path="./figs/",
        device="png", dpi=300,
-       height=10, width=30, unit=c("cm"))
+       height=15, width=30, unit=c("cm"))
