@@ -42,7 +42,7 @@ plot1 <- ggplot(aes(x=SpacerMiddle, group=Replicate), data=data)+
   #geom_histogram(aes(fill=Locus), 
   #               position=position_dodge(),
   #               bins=50)+
-  geom_dotplot(fill="white", alpha=0.5, colour="black",
+  geom_dotplot(fill="grey", alpha=0.5, colour="black",
                method="histodot", binwidth = 1,
                dotsize=2000)+
   coord_cartesian(xlim=c(seq(1,34704,1)))+
