@@ -26,7 +26,7 @@ plot(KM, ylab="Survivorship", xlab="Transfer")
 # KM ~ group
 summary(KM<-survfit(Surv(time_to_death,status)~treatment))
 
-jpeg("./figs/survplot.jpg", width=20, height=15, units="in", res=300)
+png("./figs/survplot.png", width=20, height=15, units="in", res=300)
 par(mfrow=c(1,1), xpd=TRUE, oma=c(1,1,1,1), mai=c(1.02,.1,.82,0), bty="l", pty="s")
 
 plot(survfit(Surv(phage$time_to_death,phage$status)~treatment), lty=c(1,3,5,6), 
