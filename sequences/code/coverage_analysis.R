@@ -26,8 +26,6 @@ for(i in seq(1,212,1)){
 data$SpacerMiddle <- medians
 
 ## Coverage graphs
-library(ggridges)
-
 timepoint_names_facet = list(
   't1' = '1 d.p.i.',
   't4' = '4 d.p.i.',
@@ -40,13 +38,13 @@ timepoint_labeller = function(variable, value) {
   return(timepoint_names_facet[value])
 }
 
-plot1 <- ggplot(aes(x=SpacerMiddle), data=data)+
+plot1 <- ggplot(aes(x=SpacerMiddle, group=Replicate), data=data)+
   #geom_histogram(aes(fill=Locus), 
   #               position=position_dodge(),
   #               bins=50)+
   geom_dotplot(fill="white", alpha=0.5, colour="black",
-               method="histodot", binwidth = 10,
-               dotsize=200)+
+               method="histodot", binwidth = 1,
+               dotsize=2000)+
   coord_cartesian(xlim=c(seq(1,34704,1)))+
   facet_wrap(~Timepoint, labeller = timepoint_labeller)+
   theme_bw()+
@@ -78,3 +76,6 @@ detach("package:cowplot")
 ggsave("coverage_plot.png", plot1, path="./figs/",
        device="png", dpi=300,
        height=13, width=30, unit=c("cm"))
+
+
+
