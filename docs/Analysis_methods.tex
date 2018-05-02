@@ -1,0 +1,69 @@
+%Analysis_methods.tex
+\documentclass [12pt, a4paper, twoside]  {article}
+\usepackage [a4paper, left=30mm, right=30mm, top=20mm, bottom=20mm] {geometry}
+
+%%% Paragraph formatting
+\setlength{\parindent}{0pt} %new paragraph indent is 0
+\setlength{\parskip}{1em}	%new paragraphs are indicated by a new line
+\renewcommand{\baselinestretch}{1.2}
+
+%%% Making sure line numbers are included
+\RequirePackage{lineno}
+\usepackage{lineno}
+
+%%% Arranging graphics parameters
+\usepackage [utf8] {inputenc}
+% use this to put captions to the right of figures
+\usepackage{sidecap}
+\sidecaptionvpos{table}{c}
+  
+% allows exact specification of where figures are placed in the main text
+\RequirePackage{float}
+\usepackage{float}
+
+\RequirePackage{ graphicx}
+\usepackage { graphicx }
+\graphicspath{ {./figs/} } %## Commented out because the path doesn't work (7/10/17)
+\usepackage[labelfont=bf]{caption}
+\DeclareCaptionLabelFormat{bf-parens}{\textbf{#1#2}}\captionsetup{labelsep=quad}
+\usepackage{subcaption}
+\usepackage{gensymb}
+\usepackage{enumitem}
+\setlist{nosep}
+
+%%% Bibliography formatting
+%% Remember that, in order to get in-text citations and the correct bibliography in the final PDF, you need to do a LaTeX (or XeLaTeX) run, then a BibTex run, followed by two more (Xe)LaTex runs. This should then solve any issues with in-text citations appearing as (?)
+\usepackage{filecontents}
+\usepackage[round]{natbib}	% See https://gking.harvard.edu/files/	natnotes2.pdf for more information
+
+\usepackage{array}
+
+\usepackage{multicol}
+
+%%% Ensures that the text will be crossreffed with hyperlinks
+\usepackage{hyperref}
+	\hypersetup{
+		colorlinks=true
+		linkcolor=blue
+		filecolor=magenta
+		urlcolor=true}
+
+%% My own commands to make things a bit quicker to type
+\newcommand{\super}{\textsuperscript}
+\newcommand{\sub}{\textsubscript}
+
+\begin{document}
+
+\section*{Sequence analysis}
+
+\section*{Phage survival}
+
+\section*{Inferring coevolutionary dynamics}
+
+
+\clearpage
+%% Set up the bibliography	
+\bibliographystyle{./humannatemph.bst}				% default "author-year" style for natbib
+\bibliography{../../../references.bib}
+
+\end{document}
