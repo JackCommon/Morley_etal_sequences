@@ -129,7 +129,7 @@ simpson_all <- ggplot(aes(x=Replicate, y=Simpson, group=Timepoint), data=all_com
 simpson_all
 
 ggsave("replicate_diversity.png", simpson_all, path="./figs/",
-       device="png", dpi=300, width = 18, height=12, units = c("cm"))
+       device=png, dpi=300, width = 18, height=12, units = c("cm"))
 
 timepoint_comps <- read.csv("./sequences/summary_data/diversity_timepoints.csv")
 simpson_times <- ggplot(aes(x=Timepoint, y=Simpson, group=Locus), data=timepoint_comps)+
@@ -140,4 +140,4 @@ simpson_times <- ggplot(aes(x=Timepoint, y=Simpson, group=Locus), data=timepoint
 simpson_times
 
 ggsave("timepoint_diversity.png", simpson_times, path="./figs/",
-       device="png", dpi=300, width = 18, height=12, units = c("cm"))
+       device=png, dpi=300, width = 18, height=12, units = c("cm"))
