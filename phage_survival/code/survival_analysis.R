@@ -1,6 +1,16 @@
-#### Dan's Coevo Data
+#### Morley et al - Phage survival analysis ####
+# Created: 8/5/18 by Jack Common
 
 rm(list=ls())
+
+#### Dependencies ####
+#install.packages("survival")
+#install.packages("rms")
+#install.packages("car")
+#install.packages("multcomp")
+#install.packages("relaimpo")
+#install.packages("dplyr")
+#install.packages("magrittr")
 
 library(survival)
 library(rms)
@@ -10,20 +20,18 @@ library(relaimpo)
 library(dplyr)
 library(magrittr)
 
-setwd("./phage_survival/analysis_data/phage_surv.csv")
 
-## Survival analyses
+#### Keplan-Meier ####
 
+# Load data and attach the dataframe
 phage<-read.csv("./phage_survival/analysis_data/phage_surv.csv", header=T)
 phage$replicate %<>% as.factor()
 phage$treatment %<>% as.factor()
 attach(phage)
 names(phage)
 
-summary(KM<-survfit(Surv(time_to_death,status)~1))
-plot(KM, ylab="Survivorship", xlab="Transfer")
-
 # KM ~ group
+# Does the KM analysis and builds/saves the plot
 summary(KM<-survfit(Surv(time_to_death,status)~treatment))
 
 png("./figs/survplot.png", width=20, height=15, units="in", res=300)
@@ -47,9 +55,8 @@ legend(20,1, bty="o", title=c("Treatment"),
 
 dev.off()
 
-print(KM, print.rmean=T)
 
-# Cox proportional hazards model
+#### Cox PH model ####
 cosph.mod<-coxph(Surv(time_to_death,status)~treatment)
 summary(cosph.mod)
 cosph.mod$loglik
@@ -57,6 +64,8 @@ cosph.mod$loglik
 anova(cosph.mod)
 tapply(predict(cosph.mod),treatment,mean)
 
+# Builds a Tukey comparison table that is copied to the clipboard (if you're on Mac OS)
+# for easier copying to Excel
 tukey <- summary(glht(cosph.mod, linfct = mcp(treatment = "Tukey")))
 HRs <- exp(tukey$test$coefficients)
 SEs <- exp(tukey$test$sigma)
@@ -67,4 +76,6 @@ clip = pipe('pbcopy', 'w')
 write.table(HRs, file=clip, sep='\t', row.names = F, col.names = F)
 close(clip)
 
-plot(survfit(cosph.mod), xlim=c(0,30), lty=c(1,2,3))
+# An alternative KM plot based on the Cox PH model
+# Not entirely sure why it shows three lines?
+plot(survfit(cosph.mod), xlim=c(0,30), lty=c(1,2,3,4))
