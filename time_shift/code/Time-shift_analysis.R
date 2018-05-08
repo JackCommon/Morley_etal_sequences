@@ -214,7 +214,7 @@ anova(m2, test="Chisq")
 # Slope varies for each phage genotype as a random effect
 
 m3 <- glmer(Infected~Environment+(Environment|Phage.Genotype),
-            data=data,
+            data=subset(data, Host.Genotype=="h12"),
             family=binomial(link="logit"))
 summary(m3)
 anova(m3, test="Chisq")
@@ -241,8 +241,8 @@ summary(m4)
 anova(m4, test="Chisq")
 
 # Then model the GxE interaction with phage genotype as a random effect
-m5 <- glmer(Infected~Environment+(1|Phage.Genotype),
-            data=subset(data, Host.Timepoint=="t9"),
+m5 <- glmer(Infected~Environment+(Environment|Phage.Genotype),
+            data=subset(data, Host.Timepoint=="t1"),
             family=binomial())
 summary(m5)
 anova(m5, test="Chisq")
