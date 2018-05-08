@@ -1,9 +1,14 @@
-### Sequence PWD analysis
-## Created 25/4/18 by Jack Common
+#### Morley et al- Sequence diversity analysis ####
+## Created: 25/4/18 by Jack Common
 
 rm(list=ls())
 
-# Packags
+#### Dependencies ####
+#install.packages("dplyr")
+#install.packages("ggplot2")
+#install.packages("scales")
+#install.packages("magrittr")
+
 library(dplyr)
 library(ggplot2)
 library(scales)
