@@ -214,7 +214,7 @@ anova(m2, test="Chisq")
 # Slope varies for each phage genotype as a random effect
 
 m3 <- glmer(Infected~Environment+(Environment|Phage.Genotype),
-            data=subset(data, Host.Genotype=="h12"),
+            data=data,
             family=binomial(link="logit"))
 summary(m3)
 anova(m3, test="Chisq")
