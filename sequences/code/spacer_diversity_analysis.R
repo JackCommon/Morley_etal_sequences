@@ -1,7 +1,17 @@
-### Dan's coevo stuff - diversity analysis
+#### Morley et al - spacer diversity analysis ####
 # Created: 02/5/18 by Jack Common
 
 rm(list=ls())
+
+#### Dependencies ####
+
+#install.packages("ggplot2")
+#install.packages("scales")
+#install.packages("reshape2")
+#install.packages("dplyr")
+#install.packages("tidyr")
+#install.packages("magrittr")
+#install.packages("cowplot")
 
 library(ggplot2)
 library(scales)
@@ -11,7 +21,7 @@ library(tidyr)
 library(magrittr)
 library(cowplot)
 
-## Data
+#### Data ####
 data = read.csv("./sequences/summary_data/all_spacer_data.csv", header=T)
 data$Replicate %<>% as.factor
 data$Clone %<>% as.factor()
@@ -25,16 +35,17 @@ for(i in seq(1,212,1)){
 }
 data$SpacerMiddle <- medians %>% as.integer()
 
+#### Unique spacers ####
 ## Summarise the data and get the counts of each unique median hit value for each factor
 ## combination
-
 spacer.summary <- data %>% 
                   group_by(SpacerMiddle, Timepoint, Replicate, Locus) %>% 
                   count(SpacerMiddle)
 
 # Take a look at the totals for each replicate
+# Can filter by Timepoint as well 
 spacer.summary %>% filter(Replicate=="2.1")
-spacer.summary %>% filter(Replicate=="2.2", Timepoint=="t9")
+spacer.summary %>% filter(Replicate=="2.2")
 spacer.summary %>% filter(Replicate=="2.3")
 spacer.summary %>% filter(Replicate=="2.4")
 spacer.summary %>% filter(Replicate=="2.5")
@@ -51,7 +62,7 @@ spacer.summary %>% filter(Timepoint=="t9")
 spacer.summary %>% filter(Locus=="CR1")
 spacer.summary %>% filter(Locus=="CR3")
 
-
+#### Diversity calculations ####
 ## A function to calculate Simpson's Index of Diversity 
 simpson  <- function(df){
   # Get the total "population" size (N) by totalling the
@@ -117,23 +128,29 @@ simpson(cr1)
 cr3 <- filter(spacer.summary, Locus=="CR3")
 simpson(cr3)
 
-## Figures
+#### Figures ####
 all_comps <- read.csv("./sequences/summary_data/diversity_all_combinations.csv")
 all_comps$Replicate %<>% as.factor()
 
-simpson_all <- ggplot(aes(x=Replicate, y=Simpson, group=Timepoint), data=all_comps)+
-  geom_bar(stat="identity", aes(fill=Timepoint), colour="black",
+simpson_all <- ggplot(aes(x=Replicate, y=Simpson, group=Timepoint), 
+                      data=all_comps)+
+  geom_bar(stat="identity", aes(fill=Timepoint), 
+           colour="black",
            position=position_dodge())+
   coord_cartesian(ylim=c(0,1))+
   labs(y="Spacer diversity\n(Simpson's Diversity Index)")
 simpson_all
 
+detach("package:cowplot")
+
 ggsave("replicate_diversity.png", simpson_all, path="./figs/",
        device="png", dpi=300, width = 18, height=12, units = c("cm"))
 
 timepoint_comps <- read.csv("./sequences/summary_data/diversity_timepoints.csv")
-simpson_times <- ggplot(aes(x=Timepoint, y=Simpson, group=Locus), data=timepoint_comps)+
-  geom_bar(stat="identity", aes(fill=Locus), colour="black",
+simpson_times <- ggplot(aes(x=Timepoint, y=Simpson, group=Locus), 
+                        data=timepoint_comps)+
+  geom_bar(stat="identity", aes(fill=Locus), 
+           colour="black",
            position=position_dodge())+
   coord_cartesian(ylim=c(0,1))+
   labs(y="Spacer diversity\n(Simpson's Diversity Index)")
