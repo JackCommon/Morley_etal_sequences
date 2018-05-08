@@ -20,8 +20,6 @@ library(plyr)
 library(dplyr)
 library(reshape2)
 
-
-
 #### Data Wrangling ####
 # Dan's original data is formatted as a matrix, which R will struggle with. 
 # Therefore, that data needs to be converted into an R-readable long-format
@@ -168,7 +166,10 @@ rm(two.one, two.one.pT1, two.one.pT4, two.one.pT9,
 
 
 
-#### Analysis ####
+#### Analysis - GLM ####
+
+# A function to quickly convert logit coefficients from a binomial GLM(M) 
+# into more intuitive probability values
 logit2prob <- function(logit){
   odds <- exp(logit)
   prob <- odds / (1 + odds)
@@ -199,6 +200,7 @@ data$Phage.Timepoint %<>% relevel(ref="t1")
 
 logit2prob(confint(m1))
 
+#### Analysis - GLMMs of all data ####
 # Host environment-only model
 # Slope does not vary with respect to phage genotype
 m2 <- glmer(Infected~Environment+(1|Environment),
@@ -223,7 +225,7 @@ GE.MS <- anova(m3)$`Mean Sq`
 
 GE.MS/Env.MS
 
-### Timepoint-specific E and GxE models
+#### Analysis - Timepoint-specific E and GxE GLMMs ####
 m4 <- glmer(Infected~Host.Timepoint+(1|Host.Timepoint),
                   data=data,
                   family=binomial())
