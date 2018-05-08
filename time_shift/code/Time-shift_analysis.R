@@ -7,7 +7,7 @@ rm(list=ls())
 #install.packages("nlme")
 #install.packages("lme4")
 #install.packages("MuMIn")
-#install.packages("ggplot2)
+#install.packages("ggplot2")
 #install.packages("dplyr")
 #install.packages("magrittr")
 
@@ -180,8 +180,9 @@ logit2prob <- function(logit){
 # effect and phage genotype as a random effect
 names(data)
 
-# Just look at the environment (host genotype) effect on infectivity
-# to get measures of average infectivity 
+# First build a GLM that tests the interaction between phage genotype and host genotype
+# on average infectivity. Because the only the fixed effects are of interest for this 
+# part of the analysis, 
 
 m1 <- glm(Infected~Phage.Timepoint*Host.Timepoint,
             data=data,
@@ -220,23 +221,34 @@ anova(m3, test="Chisq")
 
 # Calculate the relative importance of FSD to ARD by calculating the 
 # ratio between the GxE mean square and the E mean square
-Env.MS <- anova(m2)$`Mean Sq`
-GE.MS <- anova(m3)$`Mean Sq`
+CoEvoRatio <- function(model1, model2){
+  f1 <- model1@call$formula
+  f2 <- model2@call$formula
+  Env.MS <- anova(model1)$`Mean Sq`
+  GE.MS <- anova(model2)$`Mean Sq`
+  Ratio <- GE.MS/Env.MS
+  cat("Relative importance of FSD:ARD:", Ratio)
+}
 
-GE.MS/Env.MS
+CoEvoRatio(m2,m3)
 
 #### Analysis - Timepoint-specific E and GxE GLMMs ####
-m4 <- glmer(Infected~Host.Timepoint+(1|Host.Timepoint),
-                  data=data,
+# As before, first just model the Environment as a fixed effect
+m4 <- glmer(Infected~Environment+(1|Environment),
+                  data=subset(data, Host.Timepoint="t1"),
                   family=binomial())
 summary(m4)
 anova(m4, test="Chisq")
 
+# Then model the GxE interaction with phage genotype as a random effect
 m5 <- glmer(Infected~Environment+(1|Phage.Genotype),
             data=subset(data, Host.Timepoint=="t9"),
             family=binomial())
 summary(m5)
 anova(m5, test="Chisq")
+
+CoEvoRatio(m4, m5)
+logit2prob(confint(m5))
 
 #### Figures ####
 ## Infectivity summary figure
