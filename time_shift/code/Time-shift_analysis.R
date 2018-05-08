@@ -216,6 +216,8 @@ m3 <- glmer(Infected~Environment+(Environment|Phage.Genotype),
 summary(m3)
 anova(m3, test="Chisq")
 
+# Calculate the relative importance of FSD to ARD by calculating the 
+# ratio between the GxE mean square and the E mean square
 Env.MS <- anova(m2)$`Mean Sq`
 GE.MS <- anova(m3)$`Mean Sq`
 
@@ -309,12 +311,13 @@ coevo_means$Environment %<>% relevel(ref="Future")
 coevo_means$Environment %<>% relevel(ref="Contemporary")
 coevo_means$Environment %<>% relevel(ref="Past")
 
-coevo_plot <- ggplot(aes(y=Mean.Infect, x=Environment), data=coevo_means)+
+coevo_plot <- ggplot(aes(y=Mean.Infect, x=Environment, group=Group), data=coevo_means)+
   geom_point(position = position_dodge(.5),
              size=3)+
   geom_errorbar(aes(ymin=Infect.Lower, ymax=Infect.Upper), 
                 position = position_dodge(.5),
                 width=0.1, size=1)+
+  geom_path(stat="identity", size=.8, linetype=2)+
   theme_bw()+
   labs(x="Host environment", y="Mean phage infectivity")+
   theme(axis.title = element_text(face="bold", size=16))+
