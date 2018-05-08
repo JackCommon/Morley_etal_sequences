@@ -1,7 +1,16 @@
-### Dan's coevo stuff - spacer coverage analysis
+#### Morley et al - Spacer coverage analysis ####
 # Created: 30/4/18 by Jack Common
 
 rm(list=ls())
+
+#### Dependencies ####
+#install.packages("ggplot2")
+#install.packages("scales")
+#install.packages("reshape2")
+#install.packages("dplyr")
+#install.packages("tidyr")
+#install.packages("magrittr")
+#install.packages("cowplot")
 
 library(ggplot2)
 library(scales)
@@ -11,7 +20,7 @@ library(tidyr)
 library(magrittr)
 library(cowplot)
 
-## Data
+#### Data ####
 data = read.csv("./sequences/summary_data/all_spacer_data.csv", header=T)
 data$Replicate %<>% as.factor
 data$Clone %<>% as.factor()
@@ -25,7 +34,8 @@ for(i in seq(1,212,1)){
 }
 data$SpacerMiddle <- medians
 
-## Coverage graphs
+#### Coverage graphs ####
+# Some functions for better labels
 timepoint_names_facet = list(
   't1' = '1 d.p.i.',
   't4' = '4 d.p.i.',
@@ -38,18 +48,17 @@ timepoint_labeller = function(variable, value) {
   return(timepoint_names_facet[value])
 }
 
+# Simple dot-plot of the centre-point of the blast hits. Number of points
+# indicates how many times that hit occured.
 plot1 <- ggplot(aes(x=SpacerMiddle, group=Replicate), data=data)+
-  #geom_histogram(aes(fill=Locus), 
-  #               position=position_dodge(),
-  #               bins=50)+
   geom_dotplot(fill="grey", alpha=0.5, colour="black",
-               method="histodot", binwidth = 1,
+               method="histodot", binwidth = 1,          # bindwidth = 1 to ensure no erroneous overlaps
                dotsize=2000)+
-  coord_cartesian(xlim=c(seq(1,34704,1)))+
+  coord_cartesian(xlim=c(seq(1,34704,1)))+               # y-axis is as long as the phage 2972 genome
   facet_wrap(~Timepoint, labeller = timepoint_labeller)+
   theme_bw()+
   labs(x="Position on phage genome", y="")+
-  scale_x_continuous(breaks=c(0,10000,20000,30000,34704))+
+  scale_x_continuous(breaks=c(0,10000,20000,30000,34704))+ # breaks every 10kb
   #scale_y_continuous(breaks=c(seq(0,1)),
   #                   labels=c(seq(0,20,5)))+
   
@@ -62,6 +71,7 @@ plot1 <- ggplot(aes(x=SpacerMiddle, group=Replicate), data=data)+
   theme(legend.key.height = unit(1, 'cm'))+
   theme(legend.text = element_text(size=14))+
   
+  # Remove the y-axis line as it's uninformative
   theme(axis.line.y = element_blank(),
         axis.text.y = element_blank(),
         axis.ticks.y = element_blank())+
@@ -71,6 +81,7 @@ plot1 <- ggplot(aes(x=SpacerMiddle, group=Replicate), data=data)+
 
 plot1
 
+# Detach cowplot:: as it blocks ggsave::
 detach("package:cowplot")
 
 ggsave("coverage_plot.png", plot1, path="./figs/",
