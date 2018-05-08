@@ -1,4 +1,4 @@
-#### Morley et al- Sequence diversity analysis ####
+#### Morley et al- Spacer diversity analysis ####
 ## Created: 25/4/18 by Jack Common
 
 rm(list=ls())
@@ -14,7 +14,7 @@ library(ggplot2)
 library(scales)
 library(magrittr)
 
-# Functions
+#### Functions ####
 model_stats = function(model){
   sum = coef(model)
   conf = confint(model, level=c(0.95))
@@ -54,7 +54,7 @@ compare_AICs = function(df){          # df is a dataframe of AIC values
   }
 }
 
-# Data
+#### Data ####
 diversity <- read.csv("./sequences/summary_data/PWD.csv", header = T)
 diversity$Replicate %<>% as.factor
 diversity %<>% select(-PW_ID)
@@ -68,14 +68,11 @@ diversity$Replicate %<>% relevel(ref="2.3")
 diversity$Replicate %<>% relevel(ref="2.2")
 diversity$Replicate %<>% relevel(ref="2.1")
 
-# Barplots
+#### Barplots ####
 
 PWD_plot <- ggplot(aes(y=PWD, x=Replicate, group=Locus), data=diversity)+
   geom_bar(stat="identity", aes(fill=Locus))+
   facet_grid(~Timepoint)+
   theme_bw()
 PWD_plot
-
-mod.1 <- glm(PWD~Timepoint, data = diversity, family=binomial(link="sqrt"))
-summary(mod.1)
 
