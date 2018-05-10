@@ -31,7 +31,7 @@ library(reshape2)
 Phage.Timepoint <- c(rep("t1", 432), 
                      rep("t4", 432), 
                      rep("t9", 432)) %>% 
-  rep(7)
+  rep(8)
 
 # Replicate 2.1
 two.one.pT1 <- read.csv("./time_shift/original_data/2.1/2.1_phageT1.csv", header=T) 
@@ -45,7 +45,7 @@ two.one.pT9 <- melt(two.one.pT9, id.vars = c("Replicate", "Phage","Host.Environm
 
 two.one <- bind_rows(two.one.pT1, two.one.pT4, two.one.pT9)
 
-Environment <- rep(two.one$Host.Environment, 7) # Change times to 8 when 2.5 data comes in
+Environment <- rep(two.one$Host.Environment, 8) 
 
 # Replicate 2.2
 two.two.pT1 <- read.csv("./time_shift/original_data/2.2/2.2_phageT1.csv", header=T) 
@@ -84,16 +84,16 @@ two.four.pT9 <- melt(two.four.pT9, id.vars = c("Replicate", "Phage", "Host.Timep
 two.four <- bind_rows(two.four.pT1, two.four.pT4, two.four.pT9)
 
 # Replicate 2.5
-#two.five.pT1 <- read.csv("./time_shift/original_data/2.5/2.5_phageT1.csv", header=T) 
-#two.five.pT1 <- melt(two.five.pT1, id.vars = c("Replicate", "Phage", "Host.Timepoint"))
+two.five.pT1 <- read.csv("./time_shift/original_data/2.5/2.5_phageT1.csv", header=T) 
+two.five.pT1 <- melt(two.five.pT1, id.vars = c("Replicate", "Phage", "Host.Timepoint"))
 
-#two.five.pT4 <- read.csv("./time_shift/original_data/2.5/2.5_phageT4.csv", header=T) 
-#two.five.pT4 <- melt(two.five.pT4, id.vars = c("Replicate", "Phage", "Host.Timepoint"))
+two.five.pT4 <- read.csv("./time_shift/original_data/2.5/2.5_phageT4.csv", header=T) 
+two.five.pT4 <- melt(two.five.pT4, id.vars = c("Replicate", "Phage", "Host.Timepoint"))
 
-#two.five.pT9 <- read.csv("./time_shift/original_data/2.5/2.5_phageT9.csv", header=T) 
-#two.five.pT9 <- melt(two.five.pT9, id.vars = c("Replicate", "Phage", "Host.Timepoint"))
+two.five.pT9 <- read.csv("./time_shift/original_data/2.5/2.5_phageT9.csv", header=T) 
+two.five.pT9 <- melt(two.five.pT9, id.vars = c("Replicate", "Phage", "Host.Timepoint"))
 
-#two.five <- bind_rows(two.five.pT1, two.five.pT4, two.five.pT9)
+two.five <- bind_rows(two.five.pT1, two.five.pT4, two.five.pT9)
 
 # Replicate 2.6
 two.six.pT1 <- read.csv("./time_shift/original_data/2.6/2.6_phageT1.csv", header=T) 
@@ -132,11 +132,8 @@ two.eleven.pT9 <- melt(two.eleven.pT9, id.vars = c("Replicate", "Phage", "Host.T
 two.eleven <- bind_rows(two.eleven.pT1, two.eleven.pT4, two.eleven.pT9)
 
 # Bind together each replicate dataframe
-data <- bind_rows(two.one, two.two, two.three,
-                  two.four, two.six, two.seven, two.eleven)
-
-# Add the inverse of the infectivity data to get resistance data
-data$Resistant <- ifelse(data$variable==1,0,1)
+data <- bind_rows(two.one, two.two, two.three, two.four,
+                  two.five, two.six, two.seven, two.eleven)
 
 # Add in the new variables for downstream analysis
 data$Phage.Timepoint <- as.factor(Phage.Timepoint)
@@ -148,6 +145,9 @@ data <- plyr::rename(data, c("variable"="Host.Genotype",
                              "Phage"="Phage.Genotype"))
 data$Replicate %<>% as.factor()
 data$Phage.Genotype %<>% as.factor()
+
+# Add the inverse of the infectivity data to get resistance data
+data$Resistant <- ifelse(data$Infected=="1",0,1)
 
 # Finally, save the data as a CSV to the working directory
 write.csv(file="./time_shift/original_data/infectivity_resistance_long.csv", data, 
@@ -182,7 +182,7 @@ names(data)
 # on average infectivity. Because the only the fixed effects are of interest for this 
 # part of the analysis, 
 
-m1 <- glm(Infected~Phage.Timepoint*Host.Timepoint,
+m1 <- glm(Infected~Host.Timepoint,
             data=data,
             family=binomial(link="logit"))
 summary(m1)
@@ -197,6 +197,11 @@ data$Phage.Timepoint %<>% relevel(ref="t9")
 data$Phage.Timepoint %<>% relevel(ref="t4")
 data$Phage.Timepoint %<>% relevel(ref="t1")
 
+data$Environment %<>% relevel(ref="Past")
+data$Environment %<>% relevel(ref="Contemporary")
+data$Environment %<>% relevel(ref="Future")
+
+logit2prob(m1$coefficients[1])
 logit2prob(confint(m1))
 
 #### Analysis - GLMMs of all data ####
@@ -282,7 +287,7 @@ infect_plot
 ggsave("infectivity_1.png", infect_plot, path="./figs/",
        device="png", dpi=300, width=20, height=14, units = c("cm"))
 
-## Timepoint contrast 2 summary figure
+## Infectivity timepoint contrast 2 summary figure
 infect_sum_2 <- read.csv("./time_shift/summary_data/infectivity_means_2.csv")
 infect_sum_2$Phage %<>% relevel(ref="Future")
 infect_sum_2$Phage %<>% relevel(ref="Contemporary")
@@ -296,12 +301,12 @@ infect_plot_2 <- ggplot(aes(y=Mean.Infect, x=Host, Group=Phage), data=infect_sum
                 width=0.2, size=1)+
   theme_bw()+
   
-  labs(x="Host environment (days post-infection)", y="Mean phage infectivity")+
+  labs(x="Transfer", y="Mean phage infectivity")+
   scale_x_discrete(breaks=c("t1", "t4", "t9"),
                    labels=c("1", "4", "9"))+
   coord_cartesian(ylim=c(0,1))+
   scale_y_continuous(breaks=c(seq(0,1,0.25)))+
-  scale_fill_discrete(name="Phage\ngenotype")+
+  scale_fill_discrete(name="Host\nenvironment")+
   
   theme(axis.title = element_text(face="bold", size=16))+
   theme(axis.text = element_text(size=14))+
@@ -316,14 +321,14 @@ infect_plot_2
 ggsave("infectivity_2.png", infect_plot_2, path="./figs/",
        device="png", dpi=300, width=20, height=14, units = c("cm"))
 
-### Timepoint contrast figure
-coevo_means <- read.csv("./time_shift/summary_data/comparison_means.csv")
+### Timepoint infectivity contrast figure
+coevo_infect <- read.csv("./time_shift/summary_data/comparison_means_infect.csv")
 
-coevo_means$Environment %<>% relevel(ref="Future")
-coevo_means$Environment %<>% relevel(ref="Contemporary")
-coevo_means$Environment %<>% relevel(ref="Past")
+coevo_infect$Environment %<>% relevel(ref="Future")
+coevo_infect$Environment %<>% relevel(ref="Contemporary")
+coevo_infect$Environment %<>% relevel(ref="Past")
 
-coevo_plot <- ggplot(aes(y=Mean.Infect, x=Environment, group=Group), data=coevo_means)+
+coevo_infect_plot <- ggplot(aes(y=Mean.Infect, x=Environment, group=Group), data=coevo_infect)+
   geom_point(position = position_dodge(.5),
              size=3)+
   geom_errorbar(aes(ymin=Infect.Lower, ymax=Infect.Upper), 
@@ -341,10 +346,73 @@ coevo_plot <- ggplot(aes(y=Mean.Infect, x=Environment, group=Group), data=coevo_
   theme(legend.key.height = unit(1, 'cm'))+
   theme(legend.text = element_text(size=14))+
   
-  scale_y_continuous(breaks=c(seq(0, 0.7, 0.1)))
-coevo_plot
+  scale_y_continuous(breaks=c(seq(0, 0.8, 0.1)))
+coevo_infect_plot
 
-ggsave("coevo_1.png", coevo_plot, path="./figs/",
+ggsave("coevo_infect.png", coevo_infect_plot, path="./figs/",
+       device="png", dpi=300, width=20, height=14, units = c("cm"))
+
+#### Resistance figures ####
+## Infectivity timepoint contrast 2 summary figure
+
+resist_plot_2 <- ggplot(aes(y=Mean.Resist, x=Host, Group=Phage), data=infect_sum_2)+
+  geom_bar(stat="identity",aes(fill=Phage), position = position_dodge(.5),
+           width=.5)+
+  geom_errorbar(aes(ymin=Resist.Lower, ymax=Resist.Upper), 
+                position = position_dodge(.5),
+                width=0.2, size=1)+
+  theme_bw()+
+  
+  labs(x="Transfer", y="Mean host resistance")+
+  scale_x_discrete(breaks=c("t1", "t4", "t9"),
+                   labels=c("1", "4", "9"))+
+  coord_cartesian(ylim=c(0,1))+
+  scale_y_continuous(breaks=c(seq(0,1,0.25)))+
+  scale_fill_discrete(name="Host\nenvironment")+
+  
+  theme(axis.title = element_text(face="bold", size=16))+
+  theme(axis.text = element_text(size=14))+
+  theme(legend.title = element_text(face='bold', size=16))+
+  theme(legend.title.align = 0.5)+
+  theme(legend.position = 'right')+
+  theme(legend.key.width = unit(1, 'cm'))+
+  theme(legend.key.height = unit(1, 'cm'))+
+  theme(legend.text = element_text(size=14))
+resist_plot_2
+
+ggsave("infectivity_2.png", infect_plot_2, path="./figs/",
+       device="png", dpi=300, width=20, height=14, units = c("cm"))
+
+### Timepoint resistance contrast figure
+coevo_resist <- read.csv("./time_shift/summary_data/comparison_means_resist.csv")
+
+coevo_resist$Environment %<>% relevel(ref="Future")
+coevo_resist$Environment %<>% relevel(ref="Contemporary")
+coevo_resist$Environment %<>% relevel(ref="Past")
+
+coevo_resist_plot <- ggplot(aes(y=Mean.Resist, x=Environment, group=Group), data=coevo_resist)+
+  geom_point(position = position_dodge(.5),
+             size=3)+
+  geom_errorbar(aes(ymin=Resist.Lower, ymax=Resist.Upper), 
+                position = position_dodge(.5),
+                width=0.1, size=1)+
+  geom_path(stat="identity", size=.8, linetype=2)+
+  theme_bw()+
+  labs(x="Host environment", y="Mean host resistance")+
+  theme(axis.title = element_text(face="bold", size=16))+
+  theme(axis.text = element_text(size=14))+
+  theme(legend.title = element_text(face='bold', size=14))+
+  theme(legend.title.align = 0.5)+
+  theme(legend.position = 'right')+
+  theme(legend.key.width = unit(2, 'cm'))+
+  theme(legend.key.height = unit(1, 'cm'))+
+  theme(legend.text = element_text(size=14))+
+  
+  scale_y_continuous(breaks=c(seq(0, 1, 0.1)))+
+  coord_cartesian(ylim=c(0,1))
+coevo_resist_plot
+
+ggsave("coevo_resist.png", coevo_resist_plot, path="./figs/",
        device="png", dpi=300, width=20, height=14, units = c("cm"))
 
 
