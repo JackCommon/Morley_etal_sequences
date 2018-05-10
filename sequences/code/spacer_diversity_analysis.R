@@ -158,3 +158,19 @@ simpson_times
 
 ggsave("timepoint_diversity.png", simpson_times, path="./figs/",
        device="png", dpi=300, width = 18, height=12, units = c("cm"))
+
+
+#### Analysis ####
+library(lme4)
+str(all_comps)
+
+m1 <- glm(Simpson~Timepoint,
+            data=all_comps)
+summary(m1)
+anova(m1, test="Chisq")
+
+sresid1 <- resid(m1, type="pearson")
+hist(sresid1)
+fitted.glm <- fitted(m1, level=1)
+plot(sresid1~all_comps$Timepoint)
+plot(m1)
