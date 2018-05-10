@@ -20,6 +20,30 @@ library(plyr)
 library(dplyr)
 library(reshape2)
 
+#### Functions ####
+# A function to quickly convert logit coefficients from a binomial GLM(M) 
+# into more intuitive probability values
+logit2prob <- function(logit){
+  odds <- exp(logit)
+  prob <- odds / (1 + odds)
+  return(prob)
+}
+
+## Compare AIC values for model fit
+# This function extracts the AIC for each GLM, and then compares the absolute relative 
+# differences for each AIC to the model with the lowest AIC. This acts as a measure of 
+# model fit. More can be found at: http://faculty.washington.edu/skalski/classes/QERM597/papers_xtra/Burnham%20and%20Anderson.pdf
+
+compare_AICs = function(df){          # df is a dataframe of AIC values 
+  print(df)                           # prints the origina AIC values 
+  col_len = length(df[,2])            # extracts the number of number of models
+  AIC_min = abs(min(df[,2]))          # finds the minimum AIC value
+  for (i in seq(1, col_len, 1)){      # loop through the AIC values and prints the absolute differences from AIC_min
+    print( (abs(df[i,2])) - AIC_min)
+  }
+}
+
+
 #### Data Wrangling ####
 # Dan's original data is formatted as a matrix, which R will struggle with. 
 # Therefore, that data needs to be converted into an R-readable long-format
@@ -158,34 +182,51 @@ rm(two.one, two.one.pT1, two.one.pT4, two.one.pT9,
    two.two, two.two.pT1, two.two.pT4, two.two.pT9,
    two.three, two.three.pT1, two.three.pT4, two.three.pT9,
    two.four, two.four.pT1, two.four.pT4, two.four.pT9,
-   #two.five, two.five.pT1, two.five.pT4, two.five.pT9,
+   two.five, two.five.pT1, two.five.pT4, two.five.pT9,
    two.six, two.six.pT1, two.six.pT4, two.six.pT9,
    two.seven, two.seven.pT1, two.seven.pT4, two.seven.pT9,
    two.eleven, two.eleven.pT1, two.eleven.pT4, two.eleven.pT9,
    Environment)
 
 
-
 #### Analysis - GLM ####
-
-# A function to quickly convert logit coefficients from a binomial GLM(M) 
-# into more intuitive probability values
-logit2prob <- function(logit){
-  odds <- exp(logit)
-  prob <- odds / (1 + odds)
-  return(prob)
-}
-
+# Reload the data 
+data <- read.csv("./time_shift/original_data/infectivity_resistance_long.csv")
 names(data)
 
-# First build a GLM that tests the interaction between phage genotype and host genotype
+# First build GLMs that tests the interaction between phage genotype and host genotype
 # on average infectivity. Because the only the fixed effects are of interest for this 
-# part of the analysis, 
+# part of the analysis 
 
-m1 <- glm(Infected~Host.Timepoint,
+m.null <- glm(Infected~1,
             data=data,
             family=binomial(link="logit"))
+par(mfrow=c(2,2))
+plot(m1)
+
+m1 <- glm(Infected~Host.Timepoint,
+              data=data,
+              family=binomial(link="logit"))
+par(mfrow=c(2,2))
+plot(m1)
+
+m2 <- glm(Infected~Host.Timepoint*Phage.Timepoint,
+          data=data,
+          family=binomial(link="logit"))
+par(mfrow=c(2,2))
+plot(m2)
+
+summary(m.null)
 summary(m1)
+summary(m2)
+
+anova(m.null, m1, m2, test="Chisq")
+logLik(m.null)
+logLik(m1)
+logLik(m2)
+
+AIC(m.null, m1, m2) %>% compare_AICs()
+
 anova(m1, test="Chisq")
 model.tables(aov(m1), "mean")
 
@@ -207,45 +248,49 @@ logit2prob(confint(m1))
 #### Analysis - GLMMs of all data ####
 # Host environment-only model
 # Slope does not vary with respect to phage genotype
-m2 <- glmer(Infected~Environment+(1|Environment),
+m1 <- glmer(Infected~Environment+(1|Environment),
             data=data,
             family=binomial())
+summary(m1)
+plot(m1)
+
+# Genotype as a single random effect with no interaction
+m2 <- glmer(Infected~Environment+(1|Phage.Genotype),
+               data=data,
+               family=binomial())
 summary(m2)
+plot(m2)
+
 anova(m2, test="Chisq")
 
 # Overall genotype x Environment model
 # Slope varies for each phage genotype as a random effect
 
-m3 <- glmer(Infected~Environment+(Environment|Phage.Genotype),
+m3 <- glmer(Infected~Environment+(1|Phage.Genotype),
             data=data,
             family=binomial(link="logit"))
 summary(m3)
 anova(m3, test="Chisq")
 
-# Calculate the relative importance of FSD to ARD by calculating the 
-# ratio between the GxE mean square and the E mean square
-CoEvoRatio <- function(model1, model2){
-  f1 <- model1@call$formula
-  f2 <- model2@call$formula
-  Env.MS <- anova(model1)$`Mean Sq`
-  GE.MS <- anova(model2)$`Mean Sq`
-  Ratio <- GE.MS/Env.MS
-  cat("Relative importance of FSD:ARD:", Ratio)
-}
+plot(m3)
 
-CoEvoRatio(m2,m3)
+anova(m1, m2, m3, test="Chisq")
+logLik(m1)
+logLik(m2)
+logLik(m3)
+AIC(m1, m2, m3) %>% compare_AICs()
 
 #### Analysis - Timepoint-specific E and GxE GLMMs ####
 # As before, first just model the Environment as a fixed effect
 m4 <- glmer(Infected~Environment+(1|Environment),
-                  data=subset(data, Host.Timepoint="t9"),
+                  data=subset(data, Host.Timepoint="t4"),
                   family=binomial())
 summary(m4)
 anova(m4, test="Chisq")
 
 # Then model the GxE interaction with phage genotype as a random effect
 m5 <- glmer(Infected~Environment+(Environment|Phage.Genotype),
-            data=subset(data, Host.Timepoint=="t9"),
+            data=subset(data, Host.Timepoint=="t4"),
             family=binomial())
 summary(m5)
 anova(m5, test="Chisq")
