@@ -35,17 +35,17 @@ Phage.Timepoint <- c(rep("t1", 432),
 
 # Replicate 2.1
 two.one.pT1 <- read.csv("./time_shift/original_data/2.1/2.1_phageT1.csv", header=T) 
-two.one.pT1 <- melt(two.one.pT1, id.vars = c("Replicate", "Phage", "Phage.Timepoint", "Host.Timepoint"))
+two.one.pT1 <- melt(two.one.pT1, id.vars = c("Replicate", "Phage", "Host.Environment", "Host.Timepoint"))
 
 two.one.pT4 <- read.csv("./time_shift/original_data/2.1/2.1_phageT4.csv", header=T) 
-two.one.pT4 <- melt(two.one.pT4, id.vars = c("Replicate", "Phage", "Phage.Timepoint", "Host.Timepoint"))
+two.one.pT4 <- melt(two.one.pT4, id.vars = c("Replicate", "Phage", "Host.Environment", "Host.Timepoint"))
 
 two.one.pT9 <- read.csv("./time_shift/original_data/2.1/2.1_phageT9.csv", header=T) 
-two.one.pT9 <- melt(two.one.pT9, id.vars = c("Replicate", "Phage","Phage.Timepoint", "Host.Timepoint"))
+two.one.pT9 <- melt(two.one.pT9, id.vars = c("Replicate", "Phage","Host.Environment", "Host.Timepoint"))
 
 two.one <- bind_rows(two.one.pT1, two.one.pT4, two.one.pT9)
 
-Environment <- rep(two.one$Phage.Timepoint, 7) # Change times to 8 when 2.5 data comes in
+Environment <- rep(two.one$Host.Environment, 7) # Change times to 8 when 2.5 data comes in
 
 # Replicate 2.2
 two.two.pT1 <- read.csv("./time_shift/original_data/2.2/2.2_phageT1.csv", header=T) 
@@ -136,7 +136,7 @@ data <- bind_rows(two.one, two.two, two.three,
                   two.four, two.six, two.seven, two.eleven)
 
 # Add the inverse of the infectivity data to get resistance data
-data$Resistant <- ifelse(data$variable=="1",0,1)
+data$Resistant <- ifelse(data$variable==1,0,1)
 
 # Add in the new variables for downstream analysis
 data$Phage.Timepoint <- as.factor(Phage.Timepoint)
@@ -176,8 +176,6 @@ logit2prob <- function(logit){
   return(prob)
 }
 
-# Set up a GLMM with environment (past, present or future hosts) as a fixed
-# effect and phage genotype as a random effect
 names(data)
 
 # First build a GLM that tests the interaction between phage genotype and host genotype
@@ -235,14 +233,14 @@ CoEvoRatio(m2,m3)
 #### Analysis - Timepoint-specific E and GxE GLMMs ####
 # As before, first just model the Environment as a fixed effect
 m4 <- glmer(Infected~Environment+(1|Environment),
-                  data=subset(data, Host.Timepoint="t1"),
+                  data=subset(data, Host.Timepoint="t9"),
                   family=binomial())
 summary(m4)
 anova(m4, test="Chisq")
 
 # Then model the GxE interaction with phage genotype as a random effect
 m5 <- glmer(Infected~Environment+(Environment|Phage.Genotype),
-            data=subset(data, Host.Timepoint=="t1"),
+            data=subset(data, Host.Timepoint=="t9"),
             family=binomial())
 summary(m5)
 anova(m5, test="Chisq")
@@ -343,7 +341,7 @@ coevo_plot <- ggplot(aes(y=Mean.Infect, x=Environment, group=Group), data=coevo_
   theme(legend.key.height = unit(1, 'cm'))+
   theme(legend.text = element_text(size=14))+
   
-  scale_y_continuous(breaks=c(seq(0, 0.6, 0.1)))
+  scale_y_continuous(breaks=c(seq(0, 0.7, 0.1)))
 coevo_plot
 
 ggsave("coevo_1.png", coevo_plot, path="./figs/",
