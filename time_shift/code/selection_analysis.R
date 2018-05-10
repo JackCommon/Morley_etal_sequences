@@ -17,12 +17,10 @@ library(dplyr)
 
 #### Functions ####
 CoEvoRatio <- function(model1, model2){
-  f1 <- model1@call$formula
-  f2 <- model2@call$formula
   Env.MS <- anova(model1)$`Mean Sq`
   GE.MS <- anova(model2)$`Mean Sq`
   Ratio <- GE.MS/Env.MS
-  cat("Relative importance of FSD:ARD:", Ratio)
+  print(Ratio)
 }
 
 #### 2.1 ####
@@ -62,14 +60,14 @@ four.t4 <- filter(data, Replicate == "2.4") %>%
 four.t9 <- filter(data, Replicate == "2.4") %>% 
   filter(Host.Timepoint=="t9")
 #### 2.5 ####
-#five.t1 <- filter(data, Replicate == "2.5") %>% 
-#  filter(Host.Timepoint=="t1")
+five.t1 <- filter(data, Replicate == "2.5") %>% 
+  filter(Host.Timepoint=="t1")
 
-#five.t4 <- filter(data, Replicate == "2.5") %>% 
-#  filter(Host.Timepoint=="t4")
+five.t4 <- filter(data, Replicate == "2.5") %>% 
+  filter(Host.Timepoint=="t4")
 
-#five.t9 <- filter(data, Replicate == "2.5") %>% 
-#  filter(Host.Timepoint=="t9")
+five.t9 <- filter(data, Replicate == "2.5") %>% 
+  filter(Host.Timepoint=="t9")
 #### 2.6 ####
 six.t1 <- filter(data, Replicate == "2.6") %>% 
   filter(Host.Timepoint=="t1")
@@ -101,11 +99,11 @@ eleven.t9 <- filter(data, Replicate == "2.11") %>%
 #### Analysis ####
 # Environment-only effect
 m1 <- glm(Infected~Phage.Timepoint,
-            data=two.t4,
+            data=five.t9,
             family=binomial())
 # Genotype * Environment effect
 m2 <- glmer(Infected~Phage.Timepoint+(Phage.Timepoint|Phage.Genotype),
-            data=two.t4,
+            data=five.t9,
             family=binomial())
 summary(m1)
 summary(m2)
@@ -121,10 +119,36 @@ CoEvoRatio(m1, m2)
 scores <- read.csv("./time_shift/summary_data/FSD_scores.csv")
 scores$Replicate %<>% as.factor()
 
-m3 <- glm(Score~Timepoint,
+# Test to see if scores are normally-distributed
+shapiro.test(scores$Score)
+# Not normally distributed, so try a square-root transformation
+shapiro.test(sqrt(scores$Score))
+# Will move ahead with square-rooted residuals
+
+m3 <- lmer(sqrt(Score)~Timepoint+(1|Timepoint),
           data = scores)
-summary(m3)
-model.tables(aov(m3), "mean")
+
+m4 <- lmer(sqrt(Score)~Timepoint+(1|Replicate),
+            data=scores)
+# Check for heteroskedacity
+par(mfrow=c(2,2))
+plot(m3)
+plot(m4)
+
+# Compare models with AIC, Log-Likelihood, and finally a chi-squared
+AIC(m3, m4) %>% compare_AICs()
+logLik(m3)
+logLik(m4)
+anova(m3, m4, test="Chisq")
+
+# Looks like model 4, with Replicate as a random effect, is the best performing
+summary(m4)
+m4.coefs <- fixef(m4)
+# Need to square the coefficients to put them back on the same scale as the data 
+m4.coefs[[1]]^2
+m4.coefs[[2]]^2
+m4.coefs[[3]]^2
+0.10785^2       # Mean SE from summary(m4)
 
 #### Figures ####
 
@@ -137,7 +161,7 @@ FSD_SE <- ggplot(aes(x=Timepoint, y=Score), data=FSD_means)+
                 size=.8, width=.05)+
   theme_bw()+
   labs(y="MS(GxE)/MS(E)")+
-  ggtitle("Relative importance of fluctuating compared to\nescalating selection. Means and SEs (n=7)")+
+  ggtitle("Relative importance of fluctuating compared to\nescalating selection. Means and SEs (n=8)")+
   scale_x_discrete(name="Transfer",
                       breaks=c("t1", "t4", "t9"),
                       labels=c("1", "4", "9"))+
