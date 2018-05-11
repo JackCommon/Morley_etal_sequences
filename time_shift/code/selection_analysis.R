@@ -96,7 +96,7 @@ eleven.t4 <- filter(data, Replicate == "2.11") %>%
 eleven.t9 <- filter(data, Replicate == "2.11") %>% 
   filter(Host.Timepoint=="t9")
 
-#### Analysis ####
+#### Analysis - Phage ####
 # Environment-only effect
 m1 <- glm(Infected~Phage.Timepoint,
             data=five.t9,
@@ -115,20 +115,42 @@ CoEvoRatio(m1, m2)
 # as a GLM and get the ratio as 1-deviance ratio of the two models
 1-deviance(m2)/deviance(m1)
 
-#### Models of FSD scores ####
+m1 <- glm(Resistant~Phage.Timepoint,
+            data=eleven.t9,
+            family=binomial())
+
+#### Analysis - Host ####
+m1 <- glmer(Resistant~Phage.Timepoint+(1|Phage.Timepoint),
+          data=eleven.t9,
+          family=binomial())
+# Genotype * Environment effect
+m2 <- glmer(Resistant~Phage.Timepoint+(Phage.Timepoint|Phage.Genotype),
+            data=eleven.t9,
+            family=binomial())
+summary(m1)
+summary(m2)
+
+# Get the FSD:ARD ratio
+CoEvoRatio(m1, m2)
+
+# If you get the annoying error on the env-only model then you can run it
+# as a GLM and get the ratio as 1-deviance ratio of the two models
+1-deviance(m2)/deviance(m1)
+
+#### Models of FSD scores - Phage ####
 scores <- read.csv("./time_shift/summary_data/FSD_scores.csv")
 scores$Replicate %<>% as.factor()
 
 # Test to see if scores are normally-distributed
-shapiro.test(scores$Score)
+shapiro.test(scores$Phage)
 # Not normally distributed, so try a square-root transformation
-shapiro.test(sqrt(scores$Score))
+shapiro.test(sqrt(scores$Phage))
 # Will move ahead with square-rooted residuals
 
-m3 <- lmer(sqrt(Score)~Timepoint+(1|Timepoint),
+m3 <- lmer(sqrt(Phage)~Timepoint+(1|Timepoint),
           data = scores)
 
-m4 <- lmer(sqrt(Score)~Timepoint+(1|Replicate),
+m4 <- lmer(sqrt(Phage)~Timepoint+(1|Replicate),
             data=scores)
 # Check for heteroskedacity
 par(mfrow=c(2,2))
@@ -139,7 +161,7 @@ plot(m4)
 AIC(m3, m4) %>% compare_AICs()
 logLik(m3)
 logLik(m4)
-anova(m3, m4, test="Chisq")
+anova(m4, test="LRT")
 
 # Looks like model 4, with Replicate as a random effect, is the best performing
 summary(m4)
@@ -158,18 +180,58 @@ m4.CIs
 (m4.CIs[4]+m4.CIs[5])^2
 (m4.CIs[4]+m4.CIs[6])^2
 
+#### Models of FSD scores - Host ####
+# Test to see if scores are normally-distributed
+shapiro.test(scores$Host)
+# Not normally distributed, so try a square-root transformation
+shapiro.test(sqrt(scores$Host))
+# Will move ahead with square-rooted residuals
+
+m3 <- lmer(sqrt(Host)~Timepoint+(1|Timepoint),
+           data = scores)
+
+m4 <- lmer(sqrt(Host)~Timepoint+(1|Replicate),
+            data=scores)
+# Check for heteroskedacity
+par(mfrow=c(2,2))
+plot(m3)
+plot(m4)
+
+# Compare models with AIC, Log-Likelihood, and finally a chi-squared
+AIC(m3, m4) %>% compare_AICs()
+logLik(m3)
+logLik(m4)
+anova(m4, test="LRT")
+
+# Both models are identical
+summary(m4)
+m4.coefs <- fixef(m4)
+# Need to square the coefficients to put them back on the same scale as the data 
+m4.coefs[[1]]^2
+(m4.coefs[[1]]+m4.coefs[[2]])^2
+(m4.coefs[[1]]+m4.coefs[[3]])^2
+m4.CIs <- confint(m4, parm="beta_")
+
+m4.CIs
+(m4.CIs[1])^2; (m4.CIs[4])^2
+(m4.CIs[1]+m4.CIs[2])^2
+(m4.CIs[1]+m4.CIs[3])^2
+
+(m4.CIs[4]+m4.CIs[5])^2
+(m4.CIs[4]+m4.CIs[6])^2
+
+
 #### Figures ####
 
 FSD_means <- read.csv("./time_shift/summary_data/FSD_means.csv")
 
-# With 95% CIs
-FSD_CI <- ggplot(aes(x=Timepoint, y=Score), data=FSD_means)+
+# Phage scores
+FSD_phage <- ggplot(aes(x=Timepoint, y=Phage), data=FSD_means)+
   geom_point(size=3)+
-  geom_errorbar(aes(ymin=Score-(1.96*SE), ymax=Score+(1.96*SE)),
-                size=.8, width=.05)+
+  geom_errorbar(aes(ymin=Phage-(1.96*Phage.SE), ymax=Phage+(1.96*Phage.SE)),
+                size=.8, width=0)+
   theme_bw()+
   labs(y="MS(GxE)/MS(E)")+
-  ggtitle("Relative importance of fluctuating compared to\nescalating selection. Means and 95% CIs (n=8)")+
   scale_x_discrete(name="Timepoint",
                    breaks=c("t1", "t4", "t9"),
                    labels=c("1", "4", "9"))+
@@ -177,8 +239,26 @@ FSD_CI <- ggplot(aes(x=Timepoint, y=Score), data=FSD_means)+
   theme(axis.title = element_text(face="bold", size=16))+
   theme(axis.text = element_text(size=14))+
   theme(plot.title = element_text(hjust=0.5, face="bold"))
-FSD_CI
+FSD_phage
 
-ggsave("FSD_scores.png", FSD_CI, path="./figs/",
+# Host scores
+FSD_host <- ggplot(aes(x=Timepoint, y=Host), data=FSD_means)+
+  geom_point(size=3)+
+  geom_errorbar(aes(ymin=Host-(1.96*Host.SE), ymax=Host+(1.96*Host.SE)),
+                size=.8, width=0)+
+  theme_bw()+
+  labs(y="MS(GxE)/MS(E)")+
+  scale_x_discrete(name="Timepoint",
+                   breaks=c("t1", "t4", "t9"),
+                   labels=c("1", "4", "9"))+
+  
+  theme(axis.title = element_text(face="bold", size=16))+
+  theme(axis.text = element_text(size=14))+
+  theme(plot.title = element_text(hjust=0.5, face="bold"))
+FSD_host
+
+ggsave("FSD_host.png", FSD_host, path="./figs/",
        device="png", dpi=300,
        height=15, width = 17, units = c("cm"))
+
+
