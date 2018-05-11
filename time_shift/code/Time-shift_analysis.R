@@ -268,7 +268,7 @@ m2 <- glmer(Resistant~Environment+(1|Phage.Genotype),
 summary(m2)
 plot(m2)
 
-anova(m2, test="Chisq")
+anova(m1,m2, test="Chisq")
 
 # Overall genotype x Environment model
 # Slope varies for each phage genotype as a random effect
@@ -328,7 +328,7 @@ infect_plot <- ggplot(aes(y=Mean.Infect, x=Host, Group=Phage), data=infect_sum)+
            width=.5)+
   geom_errorbar(aes(ymin=Infect.Lower, ymax=Infect.Upper), 
                 position = position_dodge(.5),
-                width=0.2, size=1)+
+                width=0, size=1)+
   geom_path(stat="identity")+
   theme_bw()+
   labs(x="Host background", y="Infectivity")+
@@ -365,7 +365,7 @@ infect_plot_2 <- ggplot(aes(y=Mean.Infect, x=Host, Group=Phage), data=infect_sum
            width=.5)+
   geom_errorbar(aes(ymin=Infect.Lower, ymax=Infect.Upper), 
                 position = position_dodge(.5),
-                width=0.2, size=1)+
+                width=0, size=1)+
   theme_bw()+
   
   labs(x="Timepoint", y="Infectivity")+
@@ -400,7 +400,7 @@ coevo_infect_plot <- ggplot(aes(y=Mean.Infect, x=Environment, group=Group), data
              size=3)+
   geom_errorbar(aes(ymin=Infect.Lower, ymax=Infect.Upper), 
                 position = position_dodge(.5),
-                width=0.1, size=1)+
+                width=0, size=1)+
   geom_path(stat="identity", size=.8, linetype=2)+
   theme_bw()+
   labs(x="Host background", y="Infectivity")+
@@ -426,7 +426,7 @@ resist_plot <- ggplot(aes(y=Mean.Resist, x=Host, Group=Phage), data=infect_sum)+
            width=.5)+
   geom_errorbar(aes(ymin=Resist.Lower, ymax=Resist.Upper), 
                 position = position_dodge(.5),
-                width=0.2, size=1)+
+                width=0, size=1)+
   geom_path(stat="identity")+
   theme_bw()+
   labs(x="Host background", y="Resistance")+
@@ -459,7 +459,7 @@ resist_plot_2 <- ggplot(aes(y=Mean.Resist, x=Host, Group=Phage), data=infect_sum
            width=.5)+
   geom_errorbar(aes(ymin=Resist.Lower, ymax=Resist.Upper), 
                 position = position_dodge(.5),
-                width=0.2, size=1)+
+                width=0, size=1)+
   theme_bw()+
   
   labs(x="Transfer", y="Resistance")+
@@ -488,7 +488,7 @@ coevo_resist_plot <- ggplot(aes(y=Mean.Resist, x=Environment, group=Group), data
              size=3)+
   geom_errorbar(aes(ymin=Resist.Lower, ymax=Resist.Upper), 
                 position = position_dodge(.5),
-                width=0.1, size=1)+
+                width=0, size=1)+
   geom_path(stat="identity", size=.8, linetype=2)+
   theme_bw()+
   labs(x="Host background", y="Resistance")+

@@ -250,7 +250,7 @@ infect_plot <- ggplot(aes(y=Mean.Infect, x=Timepoint, group=Group), data=means)+
              size=3)+
   geom_errorbar(aes(ymin=Infect.Lower, ymax=Infect.Upper), 
                 position = position_dodge(.5),
-                width=0.1, size=1)+
+                width=0, size=1)+
   #geom_path(stat="identity", size=.8, linetype=2)+
   theme_bw()+
   labs(x="Transfer", y="Infectivity")+
@@ -273,7 +273,7 @@ resist_plot <- ggplot(aes(y=Mean.Resist, x=Timepoint, group=Group), data=means)+
              size=3)+
   geom_errorbar(aes(ymin=Resist.Lower, ymax=Resist.Upper), 
                 position = position_dodge(.5),
-                width=0.1, size=1)+
+                width=0, size=1)+
   #geom_path(stat="identity", size=.8, linetype=2)+
   theme_bw()+
   labs(x="Transfer", y="Resistance")+
