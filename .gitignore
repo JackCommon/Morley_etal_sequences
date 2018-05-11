@@ -5,3 +5,8 @@
 .DS_Store
 *.xml
 *.zip
+*.bbl
+*.blg
+*.log
+*.gz
+*.aux
