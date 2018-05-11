@@ -263,7 +263,9 @@ infect_plot <- ggplot(aes(y=Mean.Infect, x=Timepoint, group=Group), data=means)+
   theme(legend.key.height = unit(1, 'cm'))+
   theme(legend.text = element_text(size=14))+
   
-  scale_y_continuous(breaks=c(seq(0, 1, 0.1)))
+  scale_y_continuous(breaks=c(seq(0, 1, 0.1)))+
+  scale_x_discrete(breaks=c("t1", "t4", "t9"),
+                   labels=c("1", "4", "9"))
 infect_plot
 
 resist_plot <- ggplot(aes(y=Mean.Resist, x=Timepoint, group=Group), data=means)+
@@ -284,12 +286,14 @@ resist_plot <- ggplot(aes(y=Mean.Resist, x=Timepoint, group=Group), data=means)+
   theme(legend.key.height = unit(1, 'cm'))+
   theme(legend.text = element_text(size=14))+
   
-  scale_y_continuous(breaks=c(seq(0, 1, 0.1)))
+  scale_y_continuous(breaks=c(seq(0, 1, 0.1)))+
+  scale_x_discrete(breaks=c("t1", "t4", "t9"),
+                   labels=c("1", "4", "9"))
 resist_plot
 
 library(cowplot)
 infect_resist_evo <- plot_grid(infect_plot+labs(x=""), resist_plot,
-                               ncol=1, align = "hv")
+                               ncol=1, align = "hv", labels = c("A", "B"))
 
 infect_resist_evo
 

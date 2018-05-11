@@ -146,49 +146,39 @@ summary(m4)
 m4.coefs <- fixef(m4)
 # Need to square the coefficients to put them back on the same scale as the data 
 m4.coefs[[1]]^2
-m4.coefs[[2]]^2
-m4.coefs[[3]]^2
-0.10785^2       # Mean SE from summary(m4)
+(m4.coefs[[1]]+m4.coefs[[2]])^2
+(m4.coefs[[1]]+m4.coefs[[3]])^2
+m4.CIs <- confint(m4, parm="beta_")
+
+m4.CIs
+(m4.CIs[1])^2; (m4.CIs[4])^2
+(m4.CIs[1]+m4.CIs[2])^2
+(m4.CIs[1]+m4.CIs[3])^2
+
+(m4.CIs[4]+m4.CIs[5])^2
+(m4.CIs[4]+m4.CIs[6])^2
 
 #### Figures ####
 
 FSD_means <- read.csv("./time_shift/summary_data/FSD_means.csv")
 
-# With SE bars
-FSD_SE <- ggplot(aes(x=Timepoint, y=Score), data=FSD_means)+
-  geom_point(size=3)+
-  geom_errorbar(aes(ymin=Score-SE, ymax=Score+SE),
-                size=.8, width=.05)+
-  theme_bw()+
-  labs(y="MS(GxE)/MS(E)")+
-  ggtitle("Relative importance of fluctuating compared to\nescalating selection. Means and SEs (n=8)")+
-  scale_x_discrete(name="Transfer",
-                      breaks=c("t1", "t4", "t9"),
-                      labels=c("1", "4", "9"))+
-  
-  theme(axis.title = element_text(face="bold", size=16))+
-  theme(axis.text = element_text(size=14))+
-  theme(plot.title = element_text(hjust=0.5, face="bold"))
-FSD_SE
-
-ggsave("FSD_scores.png", FSD_SE, path="./figs/",
-       device="png", dpi=300,
-       height=15, width = 17, units = c("cm"))
-
 # With 95% CIs
 FSD_CI <- ggplot(aes(x=Timepoint, y=Score), data=FSD_means)+
   geom_point(size=3)+
-  geom_errorbar(aes(ymin=Lower, ymax=Upper),
+  geom_errorbar(aes(ymin=Score-(1.96*SE), ymax=Score+(1.96*SE)),
                 size=.8, width=.05)+
   theme_bw()+
   labs(y="MS(GxE)/MS(E)")+
-  scale_x_discrete(name="Transfer",
+  ggtitle("Relative importance of fluctuating compared to\nescalating selection. Means and 95% CIs (n=8)")+
+  scale_x_discrete(name="Timepoint",
                    breaks=c("t1", "t4", "t9"),
                    labels=c("1", "4", "9"))+
   
   theme(axis.title = element_text(face="bold", size=16))+
   theme(axis.text = element_text(size=14))+
-  
-  scale_y_continuous(breaks=c(seq(0,0.5,0.1)))
+  theme(plot.title = element_text(hjust=0.5, face="bold"))
 FSD_CI
 
+ggsave("FSD_scores.png", FSD_CI, path="./figs/",
+       device="png", dpi=300,
+       height=15, width = 17, units = c("cm"))

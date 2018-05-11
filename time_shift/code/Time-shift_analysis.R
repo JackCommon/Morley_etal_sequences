@@ -192,6 +192,8 @@ rm(two.one, two.one.pT1, two.one.pT4, two.one.pT9,
 #### Analysis - GLM ####
 # Reload the data 
 data <- read.csv("./time_shift/original_data/infectivity_resistance_long.csv")
+data$Replicate %<>% as.factor()
+data$Phage.Genotype %<>% as.factor()
 names(data)
 
 # First build GLMs that tests the interaction between phage genotype and host genotype
@@ -227,8 +229,8 @@ logLik(m2)
 
 AIC(m.null, m1, m2) %>% compare_AICs()
 
-anova(m1, test="Chisq")
-model.tables(aov(m1), "mean")
+anova(m2, test="Chisq")
+model.tables(aov(m2), "mean")
 
 data$Host.Timepoint %<>% relevel(ref="t9")
 data$Host.Timepoint %<>% relevel(ref="t4")
@@ -242,8 +244,12 @@ data$Environment %<>% relevel(ref="Past")
 data$Environment %<>% relevel(ref="Contemporary")
 data$Environment %<>% relevel(ref="Future")
 
-logit2prob(m1$coefficients[1])
-logit2prob(confint(m1))
+m2 <- glm(Infected~Host.Timepoint*Phage.Timepoint,
+          data=data,
+          family=binomial(link="logit"))
+
+logit2prob(m2$coefficients[1])
+logit2prob(confint(m2))
 
 #### Analysis - GLMMs of all data ####
 # Host environment-only model
@@ -252,10 +258,11 @@ m1 <- glmer(Infected~Environment+(1|Environment),
             data=data,
             family=binomial())
 summary(m1)
+par(mfrow=c(2,2))
 plot(m1)
 
 # Genotype as a single random effect with no interaction
-m2 <- glmer(Infected~Environment+(1|Phage.Genotype),
+m2 <- glmer(Resistant~Environment+(1|Phage.Genotype),
                data=data,
                family=binomial())
 summary(m2)
@@ -266,7 +273,7 @@ anova(m2, test="Chisq")
 # Overall genotype x Environment model
 # Slope varies for each phage genotype as a random effect
 
-m3 <- glmer(Infected~Environment+(1|Phage.Genotype),
+m3 <- glmer(Infected~Environment+(Environment|Phage.Genotype),
             data=data,
             family=binomial(link="logit"))
 summary(m3)
@@ -279,28 +286,43 @@ logLik(m1)
 logLik(m2)
 logLik(m3)
 AIC(m1, m2, m3) %>% compare_AICs()
+# Although the heteroskedacity can't seem to shift, I'll move ahead with model 2 based on the anova,
+# log-likelihood and AIC comparisons
+summary(m2)
+logit2prob(fixef(m2)[[1]])
+logit2prob(fixef(m2)[[1]]+fixef(m2)[[2]])
+logit2prob(fixef(m2)[[1]]+fixef(m2)[[3]])
+
+CIs <- confint(m2, parm="beta_")
+CIs
+logit2prob(CIs[1]+CIs[2])
+logit2prob(CIs[1]+CIs[3])
+
+logit2prob(CIs[4]+CIs[5])
+logit2prob(CIs[4]+CIs[6])
 
 #### Analysis - Timepoint-specific E and GxE GLMMs ####
-# As before, first just model the Environment as a fixed effect
-m4 <- glmer(Infected~Environment+(1|Environment),
-                  data=subset(data, Host.Timepoint="t4"),
-                  family=binomial())
-summary(m4)
-anova(m4, test="Chisq")
-
-# Then model the GxE interaction with phage genotype as a random effect
-m5 <- glmer(Infected~Environment+(Environment|Phage.Genotype),
-            data=subset(data, Host.Timepoint=="t4"),
+data.temp <- filter(data, Host.Timepoint=="t4")
+m4 <- glmer(Resistant~Environment+(1|Phage.Genotype),
+            data=data.temp,
             family=binomial())
-summary(m5)
-anova(m5, test="Chisq")
+summary(m4)
+logit2prob(fixef(m4)[[1]])
+logit2prob(fixef(m4)[[1]]+fixef(m4)[[2]])
+logit2prob(fixef(m4)[[1]]+fixef(m4)[[3]])
 
-CoEvoRatio(m4, m5)
-logit2prob(confint(m5))
+CIs <- confint(m4, parm="beta_")
+CIs
+logit2prob(CIs[1]); logit2prob(CIs[4])
+logit2prob(CIs[1]+CIs[2])
+logit2prob(CIs[1]+CIs[3])
+
+logit2prob(CIs[4]+CIs[5])
+logit2prob(CIs[4]+CIs[6])
 
 #### Figures ####
-## Infectivity summary figure
-infect_sum <- read.csv("./time_shift/summary_data/infectivity_means.csv")
+## Infectivity summary figure ####
+infect_sum <- read.csv("./time_shift/summary_data/timepoint_contrasts.csv")
 infect_plot <- ggplot(aes(y=Mean.Infect, x=Host, Group=Phage), data=infect_sum)+
   geom_bar(stat="identity",aes(fill=Phage), position = position_dodge(.5),
            width=.5)+
@@ -309,12 +331,12 @@ infect_plot <- ggplot(aes(y=Mean.Infect, x=Host, Group=Phage), data=infect_sum)+
                 width=0.2, size=1)+
   geom_path(stat="identity")+
   theme_bw()+
-  labs(x="Host environment (days post-infection)", y="Mean phage infectivity")+
+  labs(x="Host background", y="Infectivity")+
   scale_x_discrete(breaks=c("t1", "t4", "t9"),
                    labels=c("1", "4", "9"))+
   coord_cartesian(ylim=c(0,1))+
   scale_y_continuous(breaks=c(seq(0,1,0.25)))+
-  scale_fill_discrete(name="Phage\ngenotype",
+  scale_fill_discrete(name="Phage\nbackground",
                       breaks=c("t1", "t4", "t9"),
                       labels=c("1", "4", "9"))+
   
@@ -332,10 +354,10 @@ infect_plot
 ggsave("infectivity_1.png", infect_plot, path="./figs/",
        device="png", dpi=300, width=20, height=14, units = c("cm"))
 
-## Infectivity timepoint contrast 2 summary figure
-infect_sum_2 <- read.csv("./time_shift/summary_data/infectivity_means_2.csv")
+## Time-shift by timepoint figure ####
+infect_sum_2 <- read.csv("./time_shift/summary_data/timepoint_timeshift_contrasts.csv")
 infect_sum_2$Phage %<>% relevel(ref="Future")
-infect_sum_2$Phage %<>% relevel(ref="Contemporary")
+infect_sum_2$Phage %<>% relevel(ref="Present")
 infect_sum_2$Phage %<>% relevel(ref="Past")
 
 infect_plot_2 <- ggplot(aes(y=Mean.Infect, x=Host, Group=Phage), data=infect_sum_2)+
@@ -346,12 +368,12 @@ infect_plot_2 <- ggplot(aes(y=Mean.Infect, x=Host, Group=Phage), data=infect_sum
                 width=0.2, size=1)+
   theme_bw()+
   
-  labs(x="Transfer", y="Mean phage infectivity")+
+  labs(x="Timepoint", y="Infectivity")+
   scale_x_discrete(breaks=c("t1", "t4", "t9"),
                    labels=c("1", "4", "9"))+
   coord_cartesian(ylim=c(0,1))+
   scale_y_continuous(breaks=c(seq(0,1,0.25)))+
-  scale_fill_discrete(name="Host\nenvironment")+
+  scale_fill_discrete(name="Host\nbackground")+
   
   theme(axis.title = element_text(face="bold", size=16))+
   theme(axis.text = element_text(size=14))+
@@ -366,11 +388,11 @@ infect_plot_2
 ggsave("infectivity_2.png", infect_plot_2, path="./figs/",
        device="png", dpi=300, width=20, height=14, units = c("cm"))
 
-### Timepoint infectivity contrast figure
-coevo_infect <- read.csv("./time_shift/summary_data/comparison_means_infect.csv")
+### Time-shift infectivity contrast figure ####
+coevo_infect <- read.csv("./time_shift/summary_data/timeshift_means.csv")
 
 coevo_infect$Environment %<>% relevel(ref="Future")
-coevo_infect$Environment %<>% relevel(ref="Contemporary")
+coevo_infect$Environment %<>% relevel(ref="Present")
 coevo_infect$Environment %<>% relevel(ref="Past")
 
 coevo_infect_plot <- ggplot(aes(y=Mean.Infect, x=Environment, group=Group), data=coevo_infect)+
@@ -381,7 +403,7 @@ coevo_infect_plot <- ggplot(aes(y=Mean.Infect, x=Environment, group=Group), data
                 width=0.1, size=1)+
   geom_path(stat="identity", size=.8, linetype=2)+
   theme_bw()+
-  labs(x="Host environment", y="Mean phage infectivity")+
+  labs(x="Host background", y="Infectivity")+
   theme(axis.title = element_text(face="bold", size=16))+
   theme(axis.text = element_text(size=14))+
   theme(legend.title = element_text(face='bold', size=14))+
@@ -398,7 +420,39 @@ ggsave("coevo_infect.png", coevo_infect_plot, path="./figs/",
        device="png", dpi=300, width=20, height=14, units = c("cm"))
 
 #### Resistance figures ####
-## Infectivity timepoint contrast 2 summary figure
+## Timeshift resistance figure ####
+resist_plot <- ggplot(aes(y=Mean.Resist, x=Host, Group=Phage), data=infect_sum)+
+  geom_bar(stat="identity",aes(fill=Phage), position = position_dodge(.5),
+           width=.5)+
+  geom_errorbar(aes(ymin=Resist.Lower, ymax=Resist.Upper), 
+                position = position_dodge(.5),
+                width=0.2, size=1)+
+  geom_path(stat="identity")+
+  theme_bw()+
+  labs(x="Host background", y="Resistance")+
+  scale_x_discrete(breaks=c("t1", "t4", "t9"),
+                   labels=c("1", "4", "9"))+
+  coord_cartesian(ylim=c(0,1))+
+  scale_y_continuous(breaks=c(seq(0,1,0.25)))+
+  scale_fill_discrete(name="Phage\nbackground",
+                      breaks=c("t1", "t4", "t9"),
+                      labels=c("1", "4", "9"))+
+  
+  theme(axis.title = element_text(face="bold", size=16))+
+  theme(axis.text = element_text(size=14))+
+  theme(legend.title = element_text(face='bold', size=16))+
+  theme(legend.title.align = 0.5)+
+  theme(legend.position = 'right')+
+  theme(legend.key.width = unit(1, 'cm'))+
+  theme(legend.key.height = unit(1, 'cm'))+
+  theme(legend.text = element_text(size=14))
+
+resist_plot
+
+ggsave("resistance_1.png", resist_plot, path="./figs/",
+       device="png", dpi=300, width=20, height=14, units = c("cm"))
+
+## Resistance timeshift by timepoint figure ####
 
 resist_plot_2 <- ggplot(aes(y=Mean.Resist, x=Host, Group=Phage), data=infect_sum_2)+
   geom_bar(stat="identity",aes(fill=Phage), position = position_dodge(.5),
@@ -408,12 +462,12 @@ resist_plot_2 <- ggplot(aes(y=Mean.Resist, x=Host, Group=Phage), data=infect_sum
                 width=0.2, size=1)+
   theme_bw()+
   
-  labs(x="Transfer", y="Mean host resistance")+
+  labs(x="Transfer", y="Resistance")+
   scale_x_discrete(breaks=c("t1", "t4", "t9"),
                    labels=c("1", "4", "9"))+
   coord_cartesian(ylim=c(0,1))+
   scale_y_continuous(breaks=c(seq(0,1,0.25)))+
-  scale_fill_discrete(name="Host\nenvironment")+
+  scale_fill_discrete(name="Host\nbackground")+
   
   theme(axis.title = element_text(face="bold", size=16))+
   theme(axis.text = element_text(size=14))+
@@ -425,17 +479,11 @@ resist_plot_2 <- ggplot(aes(y=Mean.Resist, x=Host, Group=Phage), data=infect_sum
   theme(legend.text = element_text(size=14))
 resist_plot_2
 
-ggsave("infectivity_2.png", infect_plot_2, path="./figs/",
+ggsave("resistance_2.png", resist_plot_2, path="./figs/",
        device="png", dpi=300, width=20, height=14, units = c("cm"))
 
-### Timepoint resistance contrast figure
-coevo_resist <- read.csv("./time_shift/summary_data/comparison_means_resist.csv")
-
-coevo_resist$Environment %<>% relevel(ref="Future")
-coevo_resist$Environment %<>% relevel(ref="Contemporary")
-coevo_resist$Environment %<>% relevel(ref="Past")
-
-coevo_resist_plot <- ggplot(aes(y=Mean.Resist, x=Environment, group=Group), data=coevo_resist)+
+### Time-shift resistance figure ####
+coevo_resist_plot <- ggplot(aes(y=Mean.Resist, x=Environment, group=Group), data=coevo_infect)+
   geom_point(position = position_dodge(.5),
              size=3)+
   geom_errorbar(aes(ymin=Resist.Lower, ymax=Resist.Upper), 
@@ -443,7 +491,7 @@ coevo_resist_plot <- ggplot(aes(y=Mean.Resist, x=Environment, group=Group), data
                 width=0.1, size=1)+
   geom_path(stat="identity", size=.8, linetype=2)+
   theme_bw()+
-  labs(x="Host environment", y="Mean host resistance")+
+  labs(x="Host background", y="Resistance")+
   theme(axis.title = element_text(face="bold", size=16))+
   theme(axis.text = element_text(size=14))+
   theme(legend.title = element_text(face='bold', size=14))+
