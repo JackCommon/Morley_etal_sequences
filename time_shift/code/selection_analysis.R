@@ -238,8 +238,10 @@ FSD_phage <- ggplot(aes(x=Timepoint, y=Phage), data=FSD_means)+
   
   theme(axis.title = element_text(face="bold", size=16))+
   theme(axis.text = element_text(size=14))+
-  theme(plot.title = element_text(hjust=0.5, face="bold"))
+  theme(plot.title = element_text(hjust=0.5, face="bold"))+
+  coord_cartesian(ylim=c(0,0.21166618))
 FSD_phage
+
 
 # Host scores
 FSD_host <- ggplot(aes(x=Timepoint, y=Host), data=FSD_means)+
@@ -254,7 +256,8 @@ FSD_host <- ggplot(aes(x=Timepoint, y=Host), data=FSD_means)+
   
   theme(axis.title = element_text(face="bold", size=16))+
   theme(axis.text = element_text(size=14))+
-  theme(plot.title = element_text(hjust=0.5, face="bold"))
+  theme(plot.title = element_text(hjust=0.5, face="bold"))+
+  coord_cartesian(ylim=c(0, 0.21166618))
 FSD_host
 
 ggsave("FSD_host.png", FSD_host, path="./figs/",
