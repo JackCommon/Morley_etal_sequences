@@ -39,11 +39,12 @@ data$SpacerMiddle <- medians %>% as.integer()
 ## Summarise the data and get the counts of each unique median hit value for each factor
 ## combination
 spacer.summary <- data %>% 
-                  group_by(SpacerMiddle, Timepoint, Replicate, Locus) %>% 
+                  group_by(ProtospacerStart, ProtospacerEnd, Timepoint, Replicate, Locus) %>% 
                   count(SpacerMiddle)
 
 # Take a look at the totals for each replicate
 # Can filter by Timepoint as well 
+
 spacer.summary %>% filter(Replicate=="2.1")
 spacer.summary %>% filter(Replicate=="2.2")
 spacer.summary %>% filter(Replicate=="2.3")
@@ -52,6 +53,39 @@ spacer.summary %>% filter(Replicate=="2.5")
 spacer.summary %>% filter(Replicate=="2.6")
 spacer.summary %>% filter(Replicate=="2.7")
 spacer.summary %>% filter(Replicate=="2.11")
+
+#### Export the data (will be used later) ####
+spacer.summary %>% 
+  filter(Replicate=="2.1") %>%
+  write.csv("./sequences/summary_data/2.1_spacers.csv", row.names = F)
+
+spacer.summary %>% 
+  filter(Replicate=="2.2") %>%
+  write.csv("./sequences/summary_data/2.2_spacers.csv", row.names = F)
+
+spacer.summary %>% 
+  filter(Replicate=="2.3") %>%
+  write.csv("./sequences/summary_data/2.3_spacers.csv", row.names = F)
+
+spacer.summary %>% 
+  filter(Replicate=="2.4") %>%
+  write.csv("./sequences/summary_data/2.4_spacers.csv", row.names = F)
+
+spacer.summary %>% 
+  filter(Replicate=="2.5") %>%
+  write.csv("./sequences/summary_data/2.5_spacers.csv", row.names = F)
+
+spacer.summary %>% 
+  filter(Replicate=="2.6") %>%
+  write.csv("./sequences/summary_data/2.6_spacers.csv", row.names = F)
+
+spacer.summary %>% 
+  filter(Replicate=="2.7") %>%
+  write.csv("./sequences/summary_data/2.7_spacers.csv", row.names = F)
+
+spacer.summary %>% 
+  filter(Replicate=="2.11") %>%
+  write.csv("./sequences/summary_data/2.11_spacers.csv", row.names = F)
 
 # And timepoint
 spacer.summary %>% filter(Timepoint=="t1")
@@ -174,3 +208,32 @@ hist(sresid1)
 fitted.glm <- fitted(m1, level=1)
 plot(sresid1~all_comps$Timepoint)
 plot(m1)
+
+#### Collated data ####
+# Build a full dataset of the unique spacers in each replicate, timepoint and locus
+one <- read.csv("./sequences/summary_data/2.1_spacers.csv")
+two <- read.csv("./sequences/summary_data/2.2_spacers.csv")
+three <- read.csv("./sequences/summary_data/2.3_spacers.csv")
+four <- read.csv("./sequences/summary_data/2.4_spacers.csv")
+five <- read.csv("./sequences/summary_data/2.5_spacers.csv")
+six <- read.csv("./sequences/summary_data/2.6_spacers.csv")
+seven <- read.csv("./sequences/summary_data/2.7_spacers.csv")
+eleven <- read.csv("./sequences/summary_data/2.11_spacers.csv")
+
+unique_spacers <- bind_rows(one, two, three, four,
+                            five, six, seven, eleven)
+unique_spacers$Replicate %<>% as.factor
+unique_spacers$Timepoint %<>% as.factor
+unique_spacers$Locus %<>% as.factor
+unique_spacers %<>% select(-SpacerMiddle)
+
+unique_spacers$Replicate %<>% relevel(ref="2.11")
+unique_spacers$Replicate %<>% relevel(ref="2.7")
+unique_spacers$Replicate %<>% relevel(ref="2.6")
+unique_spacers$Replicate %<>% relevel(ref="2.5")
+unique_spacers$Replicate %<>% relevel(ref="2.4")
+unique_spacers$Replicate %<>% relevel(ref="2.3")
+unique_spacers$Replicate %<>% relevel(ref="2.2")
+unique_spacers$Replicate %<>% relevel(ref="2.1")
+
+write.csv(file="./sequences/summary_data/unique_spacers_noseqs.csv", unique_spacers, row.names = F)
