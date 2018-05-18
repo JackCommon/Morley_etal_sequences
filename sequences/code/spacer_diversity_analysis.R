@@ -20,6 +20,7 @@ library(dplyr)
 library(tidyr)
 library(magrittr)
 library(cowplot)
+library(directlabels)
 
 #### Data ####
 data = read.csv("./sequences/summary_data/all_spacer_data.csv", header=T)
@@ -225,7 +226,8 @@ unique_spacers <- bind_rows(one, two, three, four,
 unique_spacers$Replicate %<>% as.factor
 unique_spacers$Timepoint %<>% as.factor
 unique_spacers$Locus %<>% as.factor
-unique_spacers %<>% select(-SpacerMiddle)
+unique_spacers$SpacerMiddle %<>% as.factor()
+#unique_spacers %<>% select(-SpacerMiddle)
 
 unique_spacers$Replicate %<>% relevel(ref="2.11")
 unique_spacers$Replicate %<>% relevel(ref="2.7")
@@ -237,3 +239,64 @@ unique_spacers$Replicate %<>% relevel(ref="2.2")
 unique_spacers$Replicate %<>% relevel(ref="2.1")
 
 write.csv(file="./sequences/summary_data/unique_spacers_noseqs.csv", unique_spacers, row.names = F)
+
+#### Relative frequencies of spacers ####
+unique_spacers$RelativeFrequency <- unique_spacers$n/12
+unique1 <- unique_spacers %>% 
+  group_by(Timepoint, SpacerMiddle) %>% 
+  slice(1L)
+
+unique1$group[unique1$SpacerMiddle %in% c("883", "10732", "23585", "32567")] <- c("0.08", "",
+                                                                          "", "",
+                                                                          "0.83","1", 
+                                                                         "1", "0.08")
+
+plot2 <- ggplot(aes(y=RelativeFrequency, x=Timepoint, Group=SpacerMiddle), data=unique1)+
+  geom_point(stat="identity", aes(colour=SpacerMiddle), position=position_dodge(.3))+
+  geom_path(aes(group=SpacerMiddle), linetype=2, position = position_dodge(.3))+
+  geom_text(aes(label=group), position = position_identity(), size=5)+
+  #facet_wrap(~Replicate)+
+  #geom_text(aes(label=group))+
+  theme_cowplot()+
+  labs(x="Transfer", y="Frequency")+
+  scale_x_discrete(breaks=c("t1", "t4", "t9"),
+                   labels=c("1", "4", "9"))+
+  theme(legend.position = "none",
+        panel.grid.minor = element_blank(),
+        axis.title = element_text(size=20),
+        axis.title.y = element_text(margin=margin(r=10)),
+        axis.text = element_text(size=16))
+
+plot2
+## See if spacers are shared across replicates independet of timepoint
+unique2 <- unique_spacers %>% 
+  group_by(Replicate, SpacerMiddle) %>% 
+  slice(1L)
+
+unique_spacers$SpacerMiddle %<>% as.factor
+plot3 <- ggplot(aes(y=RelativeFrequency, x=Replicate, Group=SpacerMiddle), data=unique2)+
+  geom_point(stat="identity", aes(colour=SpacerMiddle), position=position_dodge(.3))+
+  geom_path(aes(group=SpacerMiddle), linetype=2, position = position_dodge(.3))+
+  #geom_text(aes(label=group))+
+  #facet_wrap(~Replicate)+
+  theme_cowplot()+
+  labs(x="Replicate", y="Frequency")+
+  scale_x_discrete(breaks=c("2.1", "2.2", "2.3", "2.4", "2.5", "2.6", "2.7", "2.11"),
+                   labels=c("1", "2", "3", "4", "5", "6", "7", "8"))+
+  theme(legend.position = "none",
+        panel.grid.minor = element_blank(),
+        axis.title = element_text(size=20),
+        axis.title.y = element_text(margin=margin(r=10)),
+        axis.text = element_text(size=16))
+
+
+plot3
+
+# Save figures ####
+detach("package:cowplot")
+
+ggsave("frequency_time.png", plot2, path="./figs/sequences/",
+       device = "png", height = 12, width=20, unit=c("cm"))
+
+ggsave("frequency_replicate.png", plot3, path="./figs/sequences/",
+       device = "png", height = 12, width=20, unit=c("cm"))

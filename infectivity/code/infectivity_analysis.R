@@ -299,5 +299,5 @@ infect_resist_evo
 
 detach(package:cowplot)
 
-ggsave("infect_resist_evolution.png", infect_resist_evo, path="./figs/",
+ggsave("infect_resist_evolution.png", infect_resist_evo, path="./figs/evo/",
        device="png", dpi=300, width=17, height = 20, units=c("cm"))

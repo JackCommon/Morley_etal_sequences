@@ -351,7 +351,7 @@ infect_plot <- ggplot(aes(y=Mean.Infect, x=Host, Group=Phage), data=infect_sum)+
 
 infect_plot
 
-ggsave("infectivity_1.png", infect_plot, path="./figs/",
+ggsave("infectivity_1.png", infect_plot, path="./figs/coevo/",
        device="png", dpi=300, width=20, height=14, units = c("cm"))
 
 ## Time-shift by timepoint figure ####
@@ -385,7 +385,7 @@ infect_plot_2 <- ggplot(aes(y=Mean.Infect, x=Host, Group=Phage), data=infect_sum
   theme(legend.text = element_text(size=14))
 infect_plot_2
 
-ggsave("infectivity_2.png", infect_plot_2, path="./figs/",
+ggsave("infectivity_2.png", infect_plot_2, path="./figs/coevo/",
        device="png", dpi=300, width=20, height=14, units = c("cm"))
 
 ### Time-shift infectivity contrast figure ####
@@ -416,7 +416,7 @@ coevo_infect_plot <- ggplot(aes(y=Mean.Infect, x=Environment, group=Group), data
   scale_y_continuous(breaks=c(seq(0, 0.8, 0.1)))
 coevo_infect_plot
 
-ggsave("coevo_infect.png", coevo_infect_plot, path="./figs/",
+ggsave("coevo_infect.png", coevo_infect_plot, path="./figs/coevo/",
        device="png", dpi=300, width=20, height=14, units = c("cm"))
 
 #### Resistance figures ####
@@ -449,7 +449,7 @@ resist_plot <- ggplot(aes(y=Mean.Resist, x=Host, Group=Phage), data=infect_sum)+
 
 resist_plot
 
-ggsave("resistance_1.png", resist_plot, path="./figs/",
+ggsave("resistance_1.png", resist_plot, path="./figs/coevo/",
        device="png", dpi=300, width=20, height=14, units = c("cm"))
 
 ## Resistance timeshift by timepoint figure ####
@@ -479,7 +479,7 @@ resist_plot_2 <- ggplot(aes(y=Mean.Resist, x=Host, Group=Phage), data=infect_sum
   theme(legend.text = element_text(size=14))
 resist_plot_2
 
-ggsave("resistance_2.png", resist_plot_2, path="./figs/",
+ggsave("resistance_2.png", resist_plot_2, path="./figs/coevo/",
        device="png", dpi=300, width=20, height=14, units = c("cm"))
 
 ### Time-shift resistance figure ####
@@ -505,7 +505,7 @@ coevo_resist_plot <- ggplot(aes(y=Mean.Resist, x=Environment, group=Group), data
   coord_cartesian(ylim=c(0,1))
 coevo_resist_plot
 
-ggsave("coevo_resist.png", coevo_resist_plot, path="./figs/",
+ggsave("coevo_resist.png", coevo_resist_plot, path="./figs/coevo/",
        device="png", dpi=300, width=20, height=14, units = c("cm"))
 
 

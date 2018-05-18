@@ -260,7 +260,11 @@ FSD_host <- ggplot(aes(x=Timepoint, y=Host), data=FSD_means)+
   coord_cartesian(ylim=c(0, 0.21166618))
 FSD_host
 
-ggsave("FSD_host.png", FSD_host, path="./figs/",
+ggsave("FSD_phage.png", FSD_phage, path="./figs/coevo/",
+       device="png", dpi=300,
+       height=15, width = 17, units = c("cm"))
+
+ggsave("FSD_host.png", FSD_host, path="./figs/coevo/",
        device="png", dpi=300,
        height=15, width = 17, units = c("cm"))
 

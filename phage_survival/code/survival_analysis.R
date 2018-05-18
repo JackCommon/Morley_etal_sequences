@@ -24,7 +24,7 @@ library(magrittr)
 #### Keplan-Meier ####
 
 # Load data and attach the dataframe
-phage<-read.csv("./phage_survival/analysis_data/phage_surv.csv", header=T)
+phage<-read.csv("./phage_survival/original_data/phage_surv.csv", header=T)
 phage$replicate %<>% as.factor()
 phage$treatment %<>% as.factor()
 attach(phage)
@@ -34,7 +34,7 @@ names(phage)
 # Does the KM analysis and builds/saves the plot
 summary(KM<-survfit(Surv(time_to_death,status)~treatment))
 
-png("./figs/survplot.png", width=20, height=15, units="in", res=300)
+png("./figs/phage/survplot.png", width=20, height=15, units="in", res=300)
 par(mfrow=c(1,1), xpd=TRUE, oma=c(1,1,1,1), mai=c(1.02,.1,.82,0), bty="l", pty="s")
 
 plot(survfit(Surv(phage$time_to_death,phage$status)~treatment), lty=c(1,3,5,6), 
