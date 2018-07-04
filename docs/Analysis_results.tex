@@ -66,7 +66,33 @@ Statistical analyses were carried out in R v3.5.0 \citep{R}, and graphics were g
 \section*{Evolution of infectivity and resistance}
 Phage host range declined at each timepoint (1---4: $z = -2.977$, $p < 0.01$; 1---9: $z=-6.617$, $p < 0.0001$; 4---9: $z = -4.298$, $p < 0.0001$), while host resistance range increased (1---4: $z = 5.844$, $p < 0.0001$; 1---9: $z=7.097$, $p < 0.0001$; 4---9: $z = 3.422$, $p < 0.0001$). 
 
+\section*{Time-shift analysis}
+Host background had an overall significant effect on phage infectivity (deviance \sub{2, 10041}$=10552.63, p<0.0001$). Over the whole dataset, phage were more infective to hosts from their past compared to the present ($z = 7.88, p<0.0001$) and future ($z = 44.74, p<0.0001$), and more infective to present compared to future hosts ($z=39.67, p<0.0001$). These relationships were the inverse when considering host resistance (see Figs.). 
+
+This pattern of overall decreasing infectivity and increasing resistance becomes more nuanced when focussing on each individual host background (see Fig). 
+
+\begin{table}[]
+\begin{tabular}{c|c|c|c}
+Comparison  	  &  Difference & z      & p                 \\
+ \hline 
+$\phi 4$:H1---$\phi 1$:H1 & -0.15 & -9.51 		 & \textless{}0.0001 \\
+$\phi 9$:H1---$\phi 1$:H1 & -0.21 & -12.12 		 & \textless{}0.0001 \\
+$\phi 4$:H1---$\phi 9$:H1 & 0.06   & 3.36      	 & \textless{}0.01   \\
+\hline
+$\phi 1$:H4---$\phi 4$:H4 & -0.39 & -18.23   	 & \textless{}0.0001 \\
+$\phi 9$:H4---$\phi 4$:H4 & -0.02 & -0.07   		 & 0.98              \\
+$\phi 1$:H4---$\phi 9$:H4 & -0.38  & -17.57     & \textless{}0.0001 \\
+\hline
+$\phi 1$:H9---$\phi 9$:H9 & -0.29  & -13.45     & \textless{}0.0001 \\
+$\phi 4$:H9---$\phi 9$:H9 & -0.24 & -13.42     	 & \textless{}0.0001 \\
+$\phi 1$:H9---$\phi 4$:H9 & -0.05 & -0.08        & 0.03             
+\end{tabular}
+\caption{Tukey's honest pairwise comparisons of phage infectivity at each timepont (1, 4, \& 9 d.p.i.). Comparisons represent the mean difference in proportion of hosts infected of the righthand timeshift to the lefthand }
+\end{table}
+
+
 \section*{Coevolutionary dynamics}
+Fluctuating selection in the phage was weak in all three timepoints, with a GxE effect contributing explaining at most 19\% of the residual variance. There was no difference in the strength of fluctuating selection among timepoints ($F\sub{2,22} = 1.314, p = 0.52$). 
 
 
 \clearpage

@@ -244,13 +244,19 @@ data$Environment %<>% relevel(ref="Past")
 data$Environment %<>% relevel(ref="Contemporary")
 data$Environment %<>% relevel(ref="Future")
 
-m2 <- glm(Infected~Host.Timepoint*Phage.Timepoint,
+m2 <- glm(Infected~Phage.Timepoint*Host.Timepoint,
           data=data,
           family=binomial(link="logit"))
 
+summary(m2)
+
 logit2prob(m2$coefficients[1])
+logit2prob(m2$coefficients[1]+m2$coefficients[2])
+logit2prob(m2$coefficients[1]+m2$coefficients[3])
 logit2prob(confint(m2))
 
+TukeyHSD(aov(m2))$`Phage.Timepoint:Host.Timepoint` 
+summary(m2)$coefficients
 #### Analysis - GLMMs of all data ####
 # Host environment-only model
 # Slope does not vary with respect to phage genotype
@@ -262,7 +268,7 @@ par(mfrow=c(2,2))
 plot(m1)
 
 # Genotype as a single random effect with no interaction
-m2 <- glmer(Resistant~Environment+(1|Phage.Genotype),
+m2 <- glmer(Infected~Environment+(1|Phage.Genotype),
                data=data,
                family=binomial())
 summary(m2)
@@ -273,11 +279,12 @@ anova(m1,m2, test="Chisq")
 # Overall genotype x Environment model
 # Slope varies for each phage genotype as a random effect
 
-m3 <- glmer(Infected~Environment+(Environment|Phage.Genotype),
+m3 <- glmer(Infected~Environment+(Replicate|Phage.Genotype),
             data=data,
             family=binomial(link="logit"))
 summary(m3)
-anova(m3, test="Chisq")
+anova(m2, test="Chisq")
+drop1(m2, test="Chisq")
 
 plot(m3)
 
@@ -289,7 +296,7 @@ AIC(m1, m2, m3) %>% compare_AICs()
 # Although the heteroskedacity can't seem to shift, I'll move ahead with model 2 based on the anova,
 # log-likelihood and AIC comparisons
 summary(m2)
-logit2prob(fixef(m2)[[1]])
+ logit2prob(fixef(m2)[[1]])
 logit2prob(fixef(m2)[[1]]+fixef(m2)[[2]])
 logit2prob(fixef(m2)[[1]]+fixef(m2)[[3]])
 
@@ -302,9 +309,9 @@ logit2prob(CIs[4]+CIs[5])
 logit2prob(CIs[4]+CIs[6])
 
 #### Analysis - Timepoint-specific E and GxE GLMMs ####
-data.temp <- filter(data, Host.Timepoint=="t4")
-m4 <- glmer(Resistant~Environment+(1|Phage.Genotype),
-            data=data.temp,
+data.temp <- filter(data, Host.Timepoint=="t1")
+m4 <- glmer(Infected~Host.Timepoint*Phage.Timepoint+(1|Phage.Genotype),
+            data=data,
             family=binomial())
 summary(m4)
 logit2prob(fixef(m4)[[1]])
@@ -347,7 +354,8 @@ infect_plot <- ggplot(aes(y=Mean.Infect, x=Host, Group=Phage), data=infect_sum)+
   theme(legend.position = 'right')+
   theme(legend.key.width = unit(1, 'cm'))+
   theme(legend.key.height = unit(1, 'cm'))+
-  theme(legend.text = element_text(size=14))
+  theme(legend.text = element_text(size=14))+
+  NULL
 
 infect_plot
 
