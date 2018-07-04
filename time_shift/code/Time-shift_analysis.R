@@ -338,7 +338,7 @@ infect_plot <- ggplot(aes(y=Mean.Infect, x=Host, Group=Phage), data=infect_sum)+
                 width=0, size=1)+
   geom_path(stat="identity")+
   theme_bw()+
-  labs(x="Host background", y="Infectivity")+
+  labs(x="Host background", y="Proportion of hosts infected")+
   scale_x_discrete(breaks=c("t1", "t4", "t9"),
                    labels=c("1", "4", "9"))+
   coord_cartesian(ylim=c(0,1))+

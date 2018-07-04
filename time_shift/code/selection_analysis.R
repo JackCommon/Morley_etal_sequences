@@ -1,6 +1,8 @@
 #### Morley et al - Selection analysis ####
 # Created: 9/5/17 by Jack Common
 
+rm(list=ls())
+
 #### Dependencies ####
 #install.packages("lme4")
 #install.packages("MuMIn")
@@ -21,6 +23,20 @@ CoEvoRatio <- function(model1, model2){
   GE.MS <- anova(model2)$`Mean Sq`
   Ratio <- GE.MS/Env.MS
   print(Ratio)
+}
+
+## Compare AIC values for model fit
+# This function extracts the AIC for each GLM, and then compares the absolute relative 
+# differences for each AIC to the model with the lowest AIC. This acts as a measure of 
+# model fit. More can be found at: http://faculty.washington.edu/skalski/classes/QERM597/papers_xtra/Burnham%20and%20Anderson.pdf
+
+compare_AICs = function(df){          # df is a dataframe of AIC values 
+  print(df)                           # prints the origina AIC values 
+  col_len = length(df[,2])            # extracts the number of number of models
+  AIC_min = abs(min(df[,2]))          # finds the minimum AIC value
+  for (i in seq(1, col_len, 1)){      # loop through the AIC values and prints the absolute differences from AIC_min
+    print( (abs(df[i,2])) - AIC_min)
+  }
 }
 
 #### 2.1 ####
@@ -142,10 +158,9 @@ scores <- read.csv("./time_shift/summary_data/FSD_scores.csv")
 scores$Replicate %<>% as.factor()
 
 # Test to see if scores are normally-distributed
-shapiro.test(scores$Phage)
-# Not normally distributed, so try a square-root transformation
 shapiro.test(sqrt(scores$Phage))
-# Will move ahead with square-rooted residuals
+
+# Will move ahead with sqrt-transformed residuals
 
 m3 <- lmer(sqrt(Phage)~Timepoint+(1|Timepoint),
           data = scores)
@@ -161,10 +176,13 @@ plot(m4)
 AIC(m3, m4) %>% compare_AICs()
 logLik(m3)
 logLik(m4)
-anova(m4, test="LRT")
-
+anova(m3, m4, test="LRT")
+drop1(m4, test="Chisq")
 # Looks like model 4, with Replicate as a random effect, is the best performing
 summary(m4)
+R2 <- r.squaredGLMM(m4)
+(R2[1]/R2[2])*100
+
 m4.coefs <- fixef(m4)
 # Need to square the coefficients to put them back on the same scale as the data 
 m4.coefs[[1]]^2
@@ -201,11 +219,15 @@ plot(m4)
 AIC(m3, m4) %>% compare_AICs()
 logLik(m3)
 logLik(m4)
-anova(m4, test="LRT")
+anova(m3, m4, test="LRT")
 
 # Both models are identical
 summary(m4)
 m4.coefs <- fixef(m4)
+R2 <- r.squaredGLMM(m4)
+(R2[1]/R2[2])*100
+
+
 # Need to square the coefficients to put them back on the same scale as the data 
 m4.coefs[[1]]^2
 (m4.coefs[[1]]+m4.coefs[[2]])^2
@@ -228,10 +250,10 @@ FSD_means <- read.csv("./time_shift/summary_data/FSD_means.csv")
 # Phage scores
 FSD_phage <- ggplot(aes(x=Timepoint, y=Phage), data=FSD_means)+
   geom_point(size=3)+
-  geom_errorbar(aes(ymin=Phage-(1.96*Phage.SE), ymax=Phage+(1.96*Phage.SE)),
+  geom_errorbar(aes(ymin=Phage.Lower, ymax=Phage.Upper),
                 size=.8, width=0)+
   theme_bw()+
-  labs(y="MS(GxE)/MS(E)")+
+  labs(y="MS(GxE)/MS(E) phage")+
   scale_x_discrete(name="Timepoint",
                    breaks=c("t1", "t4", "t9"),
                    labels=c("1", "4", "9"))+
@@ -239,17 +261,18 @@ FSD_phage <- ggplot(aes(x=Timepoint, y=Phage), data=FSD_means)+
   theme(axis.title = element_text(face="bold", size=16))+
   theme(axis.text = element_text(size=14))+
   theme(plot.title = element_text(hjust=0.5, face="bold"))+
-  coord_cartesian(ylim=c(0,0.21166618))
+  
+  NULL
 FSD_phage
 
 
 # Host scores
 FSD_host <- ggplot(aes(x=Timepoint, y=Host), data=FSD_means)+
   geom_point(size=3)+
-  geom_errorbar(aes(ymin=Host-(1.96*Host.SE), ymax=Host+(1.96*Host.SE)),
+  geom_errorbar(aes(ymin=Host.Lower, ymax=Host.Upper),
                 size=.8, width=0)+
   theme_bw()+
-  labs(y="MS(GxE)/MS(E)")+
+  labs(y="MS(GxE)/MS(E) host")+
   scale_x_discrete(name="Timepoint",
                    breaks=c("t1", "t4", "t9"),
                    labels=c("1", "4", "9"))+
@@ -257,7 +280,8 @@ FSD_host <- ggplot(aes(x=Timepoint, y=Host), data=FSD_means)+
   theme(axis.title = element_text(face="bold", size=16))+
   theme(axis.text = element_text(size=14))+
   theme(plot.title = element_text(hjust=0.5, face="bold"))+
-  coord_cartesian(ylim=c(0, 0.21166618))
+  coord_cartesian(ylim=c(0, 0.3727621))+
+  NULL
 FSD_host
 
 ggsave("FSD_phage.png", FSD_phage, path="./figs/coevo/",
@@ -267,5 +291,6 @@ ggsave("FSD_phage.png", FSD_phage, path="./figs/coevo/",
 ggsave("FSD_host.png", FSD_host, path="./figs/coevo/",
        device="png", dpi=300,
        height=15, width = 17, units = c("cm"))
+
 
 
