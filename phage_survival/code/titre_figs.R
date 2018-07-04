@@ -8,7 +8,6 @@ rm(list=ls())
 library(scales)
 library(ggplot2)
 library(cowplot)
-library(scales)
 
 pd <- position_dodge(0.1)
 

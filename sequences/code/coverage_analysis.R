@@ -586,7 +586,7 @@ ggsave("coverage_plot.png", plot1, path="./figs/",
        device="png", dpi=300,
        height=13, width=30, unit=c("cm"))
 
-ggsave("all_legend.png", all_legend, path="./figs/",
+ggsave("Fig3.png", all_legend, path="./figs/paper/",
        device="png", dpi=300,
        height=100, width=75, unit=c("cm"))
 

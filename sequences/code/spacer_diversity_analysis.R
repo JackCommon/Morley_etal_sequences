@@ -241,6 +241,8 @@ unique_spacers$Replicate %<>% relevel(ref="2.1")
 write.csv(file="./sequences/summary_data/unique_spacers_noseqs.csv", unique_spacers, row.names = F)
 
 #### Relative frequencies of spacers ####
+unique_spacers <- read.csv("sequences/summary_data/unique_spacers_noseqs.csv")
+
 unique_spacers$RelativeFrequency <- unique_spacers$n/12
 unique1 <- unique_spacers %>% 
   group_by(Timepoint, SpacerMiddle) %>% 
