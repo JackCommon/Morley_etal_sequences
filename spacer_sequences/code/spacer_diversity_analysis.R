@@ -166,14 +166,35 @@ simpson(cr3)
 #### Figures ####
 all_comps <- read.csv("./sequences/summary_data/diversity_all_combinations.csv")
 all_comps$Replicate %<>% as.factor()
+all_comps %<>% complete(Replicate, Timepoint)
+
+PWD_all <- ggplot(aes(x=Replicate, y=PWD), 
+                      data=all_comps)+
+  geom_col(aes(fill=Timepoint),
+           position=position_dodge(), colour="black")+
+  coord_cartesian(ylim=c(0,1))+
+  labs(y="Pairwise difference")+
+  theme_cowplot()+
+  NULL
+PWD_all
+
+m1 <- glmer(PWD~Timepoint+(1|Timepoint), data=all_comps)
+m2 <- glmer(PWD~Timepoint+(1|Replicate), data=all_comps)
+summary(m1)
+r.squaredGLMM(m1)
+R2 <- r.squaredGLMM(m2)
+100-R2[1]/R2[2]*100
+drop1(m2, test="Chisq")
+confint(m2, parm="beta_")
 
 simpson_all <- ggplot(aes(x=Replicate, y=Simpson, group=Timepoint), 
                       data=all_comps)+
-  geom_bar(stat="identity", aes(fill=Timepoint), 
-           colour="black",
-           position=position_dodge())+
+  geom_bar(stat="identity", aes(fill=Timepoint),
+           position=position_dodge(), colour="black")+
   coord_cartesian(ylim=c(0,1))+
-  labs(y="Spacer diversity\n(Simpson's Diversity Index)")
+  labs(y="Spacer diversity\n(Simpson's Diversity Index)")+
+  theme_cowplot()+
+  NULL
 simpson_all
 
 detach("package:cowplot")
@@ -188,11 +209,23 @@ simpson_times <- ggplot(aes(x=Timepoint, y=Simpson, group=Locus),
            colour="black",
            position=position_dodge())+
   coord_cartesian(ylim=c(0,1))+
-  labs(y="Spacer diversity\n(Simpson's Diversity Index)")
+  labs(y="Spacer diversity\n(Simpson's Diversity Index)")+
+  theme_cowplot()+
+  NULL
 simpson_times
 
 ggsave("timepoint_diversity.png", simpson_times, path="./figs/",
        device="png", dpi=300, width = 18, height=12, units = c("cm"))
+
+genotype_all <- ggplot(aes(x=Replicate, y=TotalGenotypes), 
+                  data=all_comps)+
+  geom_col(aes(fill=Timepoint),
+           position=position_dodge(), colour="black")+
+  #coord_cartesian(ylim=c(0,1))+
+  labs(y="Total number of\nunique genotypes")+
+  theme_cowplot()+
+  NULL
+genotype_all
 
 
 #### Analysis ####

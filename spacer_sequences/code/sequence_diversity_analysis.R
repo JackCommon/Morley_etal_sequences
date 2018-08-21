@@ -55,7 +55,7 @@ compare_AICs = function(df){          # df is a dataframe of AIC values
 }
 
 #### Data ####
-diversity <- read.csv("./sequences/summary_data/PWD.csv", header = T)
+diversity <- read.csv("./spacer_sequences/summary_data/PWD.csv", header = T)
 diversity$Replicate %<>% as.factor
 diversity %<>% select(-PW_ID)
 

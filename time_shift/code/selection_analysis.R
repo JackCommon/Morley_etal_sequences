@@ -220,6 +220,7 @@ AIC(m3, m4) %>% compare_AICs()
 logLik(m3)
 logLik(m4)
 anova(m3, m4, test="LRT")
+drop1(m4, test="Chisq")
 
 # Both models are identical
 summary(m4)

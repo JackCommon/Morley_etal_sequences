@@ -158,15 +158,14 @@ data$Replicate %<>% as.factor
 data$Phage.Genotype %<>% as.factor
 data$Host.Genotype %<>% as.factor
 
-# Nested models with Timepoint as a fixed effect. Using a negative binomial family
-# to account for zero inflation
+# Nested models with Timepoint as a fixed effect
 m1 <- glmer(Infected~Timepoint+(1|Timepoint),
-            data=data,
+            data=data_drop,
             family=binomial(link="identity"))
 
 m2 <- glmer(Infected~Timepoint+(1|Replicate),
-            data=data,
-            family=binomial(link="identity"))
+            data=data_drop,
+            family=binomial(link="logit"))
 
 
 # Check fitted residuals...
@@ -212,13 +211,14 @@ CIs[4]+CIs[6]
 #### Analysis - Mean resistance ####
 # Nested models with Timepoint as a fixed effect. Using a negative binomial family
 # to account for zero inflation
-m1 <- glmer(Resisted~Replicate+(1|Timepoint),
+m1 <- glmer(Resisted~Timepoint+(1|Timepoint),
                data=data,
                family=binomial(link="logit"))
 
 m2 <- glmer(Resisted~Timepoint+(1|Replicate),
-               data=data,
+               data=data_drop,
                family=binomial(link="logit"))
+
 
 # Check fitted residuals...
 # Heavy clustering

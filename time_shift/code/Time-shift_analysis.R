@@ -173,6 +173,29 @@ data$Phage.Genotype %<>% as.factor()
 # Add the inverse of the infectivity data to get resistance data
 data$Resistant <- ifelse(data$Infected=="1",0,1)
 
+# Sort out the Host and Phage environment factors
+data %<>% select(-Host.Environment)
+data %<>% plyr::rename(c("Environment"="Host.Background"))
+data$Phage.Background <- rep(NA, length(data$Host.Background))
+for(i in seq(1,length(data$Host.Background),1)){
+  if(data$Host.Background[i]=="Past"){
+    data$Phage.Background[i]<-"Future"
+  } 
+}
+for(i in seq(1,length(data$Host.Background),1)){
+  if(data$Host.Background[i]=="Contemporary"){
+    data$Phage.Background[i]<-"Contemporary"
+  } 
+}
+for(i in seq(1,length(data$Host.Background),1)){
+  if(data$Host.Background[i]=="Future"){
+    data$Phage.Background[i]<-"Past"
+  } 
+}
+
+# Host.Background -> If phage are challenged against hosts from their past, present or future
+# Phage.Background -> If hosts are challenged against phage from their past, present or future
+
 # Finally, save the data as a CSV to the working directory
 write.csv(file="./time_shift/original_data/infectivity_resistance_long.csv", data, 
           row.names = F)
@@ -194,10 +217,11 @@ rm(two.one, two.one.pT1, two.one.pT4, two.one.pT9,
 data <- read.csv("./time_shift/original_data/infectivity_resistance_long.csv")
 data$Replicate %<>% as.factor()
 data$Phage.Genotype %<>% as.factor()
+#data %<>% na.exclude # include to get marginal and conditional R2 from models
 names(data)
 
 # First build GLMs that tests the interaction between phage genotype and host genotype
-# on average infectivity. Because the only the fixed effects are of interest for this 
+# on average infectivity. Only the fixed effects are of interest for this 
 # part of the analysis 
 
 m.null <- glm(Infected~1,
@@ -240,9 +264,9 @@ data$Phage.Timepoint %<>% relevel(ref="t9")
 data$Phage.Timepoint %<>% relevel(ref="t4")
 data$Phage.Timepoint %<>% relevel(ref="t1")
 
-data$Environment %<>% relevel(ref="Past")
-data$Environment %<>% relevel(ref="Contemporary")
-data$Environment %<>% relevel(ref="Future")
+data$Host.Background %<>% relevel(ref="Past")
+data$Host.Background %<>% relevel(ref="Contemporary")
+data$Host.Background %<>% relevel(ref="Future")
 
 m2 <- glm(Infected~Host.Timepoint*Phage.Timepoint,
           data=data,
@@ -251,10 +275,10 @@ m2 <- glm(Infected~Host.Timepoint*Phage.Timepoint,
 logit2prob(m2$coefficients[1])
 logit2prob(confint(m2))
 
-#### Analysis - GLMMs of all data ####
+#### Analysis - GLMMs of infectivity based on host background ####
 # Host environment-only model
 # Slope does not vary with respect to phage genotype
-m1 <- glmer(Infected~Environment+(1|Environment),
+m1 <- glmer(Infected~Host.Background+(1|Host.Background),
             data=data,
             family=binomial())
 summary(m1)
@@ -262,18 +286,72 @@ par(mfrow=c(2,2))
 plot(m1)
 
 # Genotype as a single random effect with no interaction
-m2 <- glmer(Resistant~Environment+(1|Phage.Genotype),
+m2 <- glmer(Infected~Host.Background+(1|Phage.Genotype),
                data=data,
                family=binomial())
 summary(m2)
 plot(m2)
 
 anova(m1,m2, test="Chisq")
+anova(m2, test="Chisq")
+R2 <- r.squaredGLMM(m2)
+R2[1]/R2[2]*100
 
 # Overall genotype x Environment model
 # Slope varies for each phage genotype as a random effect
 
-m3 <- glmer(Infected~Environment+(Environment|Phage.Genotype),
+m3 <- glmer(Infected~Host.Background+(Host.Background|Phage.Genotype),
+            data=data,
+            family=binomial(link="logit"))
+summary(m3)
+anova(m3, test="Chisq")
+
+plot(m3)
+
+anova(m1, m2, m3, test="Chisq")
+logLik(m1)
+logLik(m2)
+logLik(m3)
+AIC(m1, m2, m3) %>% compare_AICs()
+# Although the heteroskedacity can't seem to shift, I'll move ahead with model 2 based on the anova,
+# log-likelihood and AIC comparisons
+summary(m2)
+logit2prob(fixef(m2)[[1]])
+logit2prob(fixef(m2)[[1]]+fixef(m2)[[2]])
+logit2prob(fixef(m2)[[1]]+fixef(m2)[[3]])
+
+CIs <- confint(m2, parm="beta_")
+CIs
+logit2prob(CIs[1]+CIs[2])
+logit2prob(CIs[1]+CIs[3])
+
+logit2prob(CIs[4]+CIs[5])
+logit2prob(CIs[4]+CIs[6])
+
+#### Analysis - GLMMs of infectivity based on host background ####
+# Host environment-only model
+# Slope does not vary with respect to phage genotype
+m1 <- glmer(Resistant~Phage.Background+(1|Phage.Background),
+            data=data,
+            family=binomial())
+summary(m1)
+par(mfrow=c(2,2))
+plot(m1)
+
+# Genotype as a single random effect with no interaction
+m2 <- glmer(Resistant~Phage.Background+(1|Host.Genotype),
+            data=data,
+            family=binomial())
+summary(m2)
+plot(m2)
+
+anova(m1,m2, test="Chisq")
+r.squaredGLMM(m2)
+
+# Overall genotype x Environment model
+# Slope varies for each phage genotype as a random effect
+
+m3 <- glmer(Resistant~Phage.Background+(Phage.Background|Host.Genotype),
             data=data,
             family=binomial(link="logit"))
 summary(m3)
@@ -303,7 +381,7 @@ logit2prob(CIs[4]+CIs[6])
 
 #### Analysis - Timepoint-specific E and GxE GLMMs ####
 data.temp <- filter(data, Host.Timepoint=="t4")
-m4 <- glmer(Resistant~Environment+(1|Phage.Genotype),
+m4 <- glmer(Resistant~Host.Background+(1|Phage.Genotype),
             data=data.temp,
             family=binomial())
 summary(m4)
@@ -391,11 +469,11 @@ ggsave("infectivity_2.png", infect_plot_2, path="./figs/coevo/",
 ### Time-shift infectivity contrast figure ####
 coevo_infect <- read.csv("./time_shift/summary_data/timeshift_means.csv")
 
-coevo_infect$Environment %<>% relevel(ref="Future")
-coevo_infect$Environment %<>% relevel(ref="Present")
-coevo_infect$Environment %<>% relevel(ref="Past")
+coevo_infect$Host.Background %<>% relevel(ref="Future")
+coevo_infect$Host.Background %<>% relevel(ref="Present")
+coevo_infect$Host.Background %<>% relevel(ref="Past")
 
-coevo_infect_plot <- ggplot(aes(y=Mean.Infect, x=Environment, group=Group), data=coevo_infect)+
+coevo_infect_plot <- ggplot(aes(y=Mean.Infect, x=Host.Background, group=Group), data=coevo_infect)+
   geom_point(position = position_dodge(.5),
              size=3)+
   geom_errorbar(aes(ymin=Infect.Lower, ymax=Infect.Upper), 
@@ -483,7 +561,7 @@ ggsave("resistance_2.png", resist_plot_2, path="./figs/coevo/",
        device="png", dpi=300, width=20, height=14, units = c("cm"))
 
 ### Time-shift resistance figure ####
-coevo_resist_plot <- ggplot(aes(y=Mean.Resist, x=Environment, group=Group), data=coevo_infect)+
+coevo_resist_plot <- ggplot(aes(y=Mean.Resist, x=Host.Background, group=Group), data=coevo_infect)+
   geom_point(position = position_dodge(.5),
              size=3)+
   geom_errorbar(aes(ymin=Resist.Lower, ymax=Resist.Upper), 

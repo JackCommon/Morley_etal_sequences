@@ -11,26 +11,51 @@ library(plyr)
 library(dplyr)
 library(cowplot)
 library(scales)
+library(tidyr)
 
 pd <- position_dodge(0.1)
 
 ### Figure 1 - Host & phage population dynamics ####
-# Phage data ####
-raw_titres <- read.csv("./phage_survival/original_data/phage_titre_Jack.csv")
-str(data)
-raw_titres$Replicate %<>% as.factor()
-raw_titres$Timepoint %<>% as.factor()
-raw_titres$Treatment %<>% as.factor()
+data <- read.csv("./phage_survival/original_data/phage_titre_Jack.csv")
+data$Replicate %<>% as.factor()
+#data$Timepoint %<>% as.factor()
+data$Treatment %<>% as.factor()
 
-# 10^9 plot ####
-nine_plot <- ggplot(aes(y=pfu, x=Timepoint, group=Replicate), 
-                    data=subset(raw_titres, Treatment == '9'))+
+# Convert negative values to zeros
+data$OD600 <- ifelse(data$OD600<0,0,data$OD600)
+
+# Melt data for PFU and OD600 dual plots
+dataM <- melt(data, measure.vars = c("pfu", "OD600"))
+dataM <- plyr::rename(dataM, c("variable"="measurement"))
+dataM$Timepoint %<>% as.factor
+
+phageIDs <- c(rep("p1",31) , rep("p2", 31), rep("p3", 31),
+              rep("p4",31) , rep("p5", 31), rep("p6", 31),
+              rep("p7",31) , rep("p8", 31), rep("p9", 31),
+              rep("p10",31) , rep("p11", 31), rep("p12", 31)) %>% 
+  rep(4)
+
+hostIDs <- c(rep("h1",31) , rep("h2", 31), rep("h3", 31),
+             rep("h4",31) , rep("h5", 31), rep("h6", 31),
+             rep("h7",31) , rep("h8", 31), rep("h9", 31),
+             rep("h10",31) , rep("h11", 31), rep("h12", 31)) %>% 
+  rep(4)
+
+ID2 <- c(phageIDs, hostIDs)
+
+dataM$ID2 <- as.factor(ID2)
+
+
+### 10^9 plot ##
+nine_plot <- ggplot(aes(y=log10(pfu), x=Timepoint, group=Replicate), 
+                    data=subset(data, Treatment == '9'))+
   
   #geom_point(stat='identity', position=pd)+
   geom_path(stat='identity', position=pd, size=1)+
   
-  labs(x='Transfer', y=expression(bold("P.f.u. ml"*{}^{-1}*"")))+
+  labs(x='Days post-infection (d.p.i.)', y=expression(bold("P.f.u./C.f.u. ml"*{}^{-1}*"")))+
   ggtitle(expression(bold("10"*{}^{9}*" Treatment")))+
+  facet_wrap(~Replicate)+
   
   theme_cowplot()+
   theme(plot.title = element_text(face="bold", hjust=0, size = 16))+
@@ -41,18 +66,22 @@ nine_plot <- ggplot(aes(y=pfu, x=Timepoint, group=Replicate),
                      labels = trans_format('log10', math_format(10^.x)))+
   coord_cartesian(ylim=c(1,1e+10))+
   
-  theme(axis.text = element_text(size=12))
-nine_plot
+  theme(axis.text = element_text(size=12))+
+  geom_line(aes(y=(OD600*1e+8)+1), colour="blue")+
+  NULL
+#quartz()
+#nine_plot
 
-# 10^8 plot ####
+### 10^8 plot ##
 eight_plot <- ggplot(aes(y=pfu, x=Timepoint, group=Replicate), 
-                     data=subset(raw_titres, Treatment == '8'))+
+                     data=subset(data, Treatment == '8'))+
   
   #geom_point(stat='identity', position=pd)+
   geom_path(stat='identity', position=pd, size=1)+
   
-  labs(x='Transfer', y=expression(bold("P.f.u. ml"*{}^{-1}*"")))+
+  labs(x='Days post-infection (d.p.i.)', y=expression(bold("P.f.u./C.f.u. ml"*{}^{-1}*"")))+
   ggtitle(expression(bold("10"*{}^{8}*" Treatment")))+
+  facet_wrap(~Replicate)+
   
   theme_cowplot()+
   theme(plot.title = element_text(face="bold", hjust=0, size = 16))+
@@ -62,18 +91,22 @@ eight_plot <- ggplot(aes(y=pfu, x=Timepoint, group=Replicate),
                      labels = trans_format('log10', math_format(10^.x)))+
   coord_cartesian(ylim=c(1,1e+10))+
   
-  theme(axis.text = element_text(size=12))
-eight_plot
+  theme(axis.text = element_text(size=12))+
+  geom_line(aes(y=(OD600*1e+8)+1), colour="blue")+
+  NULL
+#quartz()
+#eight_plot
 
-# 10^7 plot ####
+### 10^7 plot ##
 seven_plot <- ggplot(aes(y=pfu, x=Timepoint, group=Replicate), 
-                     data=subset(raw_titres, Treatment == '7'))+
+                     data=subset(data, Treatment == '7'))+
   
   #geom_point(stat='identity', position=pd)+
   geom_path(stat='identity', position=pd, size=1)+
   
-  labs(x='Transfer', y=expression(bold("P.f.u. ml"*{}^{-1}*"")))+
+  labs(x='Days post-infection (d.p.i.)', y=expression(bold("P.f.u./C.f.u. ml"*{}^{-1}*"")))+
   ggtitle(expression(bold("10"*{}^{7}*" Treatment")))+
+  facet_wrap(~Replicate)+
   
   theme_cowplot()+
   theme(plot.title = element_text(face="bold", hjust=0, size = 16))+
@@ -84,18 +117,22 @@ seven_plot <- ggplot(aes(y=pfu, x=Timepoint, group=Replicate),
                      labels = trans_format('log10', math_format(10^.x)))+
   coord_cartesian(ylim=c(1,1e+10))+
   
-  theme(axis.text = element_text(size=12))
-seven_plot
+  theme(axis.text = element_text(size=12))+
+  geom_line(aes(y=(OD600*1e+8)+1), colour="blue")+
+  NULL
+#quartz()
+#seven_plot
 
-# 10^6 plot ####
+### 10^6 plot ##
 six_plot <- ggplot(aes(y=pfu, x=Timepoint, group=Replicate), 
-                   data=subset(raw_titres, Treatment == '6'))+
+                   data=subset(data, Treatment == '6'))+
   
   #geom_point(stat='identity', position=pd)+
   geom_path(stat='identity', position=pd, size=1)+
   
-  labs(x='Transfer', y=expression(bold("P.f.u. ml"*{}^{-1}*"")))+
+  labs(x='Days post-infection (d.p.i.)', y=expression(bold("P.f.u./C.f.u. ml"*{}^{-1}*"")))+
   ggtitle(expression(bold("10"*{}^{6}*" Treatment")))+
+  facet_wrap(~Replicate)+
   
   theme_cowplot()+
   theme(plot.title = element_text(face="bold", hjust=0, size = 16))+
@@ -106,39 +143,22 @@ six_plot <- ggplot(aes(y=pfu, x=Timepoint, group=Replicate),
                      labels = trans_format('log10', math_format(10^.x)))+
   coord_cartesian(ylim=c(1,1e+10))+
   
-  theme(axis.text = element_text(size=12))
-six_plot
+  theme(axis.text = element_text(size=12))+
+  geom_line(aes(y=(OD600*1e+8)+1), colour="blue")+
+  NULL
+#quartz()
+#six_plot
 
-# Arrange phage plots ####
-all_titres <- plot_grid(nine_plot+labs(x="", y="")+
-                          theme(axis.title = element_text(size=21),
-                                axis.text = element_text(size=16),
-                                plot.title = element_text(size=28)),
-                        eight_plot+labs(x="", y="")+
-                          theme(axis.title = element_text(size=21),
-                                axis.text = element_text(size=16),
-                                plot.title = element_text(size=28)),
-                        seven_plot+xlab("Transfer")+
-                          theme(axis.title.x = element_text(size=25, hjust = 1.15, margin = margin(t=20)),
-                                axis.title = element_text(size=21),
-                                axis.title.y = element_text(margin=margin(r=20), hjust=1.5),
-                                axis.text = element_text(size=16),
-                                plot.title = element_text(size=28)),
-                        six_plot+labs(x="", y="")+
-                          theme(axis.title = element_text(size=21),
-                                axis.text = element_text(size=16),
-                                plot.title = element_text(size=28)),
-                        nrow=2, ncol=2, align = "hv", labels = c("i.", "ii.", "iii.", "iv."), 
-                        label_size = 28, label_colour = "red", label_x = .05)
-# Host data ####
-# Arrange and save Figure 1 ####
-Fig1 <- plot_grid(all_titres, #all_cfu,
-                  labels=c("A", "B"), label_size = 30,
-                  nrow=2)
+### Arrange and save plots ##
+Fig1 <- plot_grid(nine_plot+labs(x=""), 
+                        eight_plot+labs(x=""),
+                        seven_plot, 
+                        six_plot,
+                        labels = c("A", "B", "C", "D"), label_colour = "red")
 
 ggsave("Fig1.png", Fig1, path="./figs/paper/",
-       dpi=300, device="png",
-       width=54, height=75, units = c("cm"))
+       device="png", dpi=300,
+       height=40, width=54, unit=c("cm"))
 
 ### Figure 2 - Evolution of resistance/infectivity ####
 infect_resist_evo <- read.csv("./infectivity/summary_data/infect_resist_means.csv")
@@ -163,8 +183,10 @@ infect_plot <- ggplot(aes(y=Mean.Infect, x=Timepoint, group=Group), data=infect_
   theme(legend.text = element_text(size=14))+
   
   scale_y_continuous(breaks=c(seq(0, 1, 0.1)))+
+  coord_cartesian(ylim=c(0,1))+
   scale_x_discrete(breaks=c("t1", "t4", "t9"),
-                   labels=c("1", "4", "9"))
+                   labels=c("1", "4", "9"))+
+  NULL
 
 resist_plot <- ggplot(aes(y=Mean.Resist, x=Timepoint, group=Group), data=infect_resist_evo)+
   geom_point(position = position_dodge(.5),
@@ -196,12 +218,244 @@ Fig2
 ggsave("Fig2.png", Fig2, path="./figs/paper/",
        device="png", dpi=300, width=20, height=10, units = c("cm"))
 
-### Figure 3 - Spacer and phage diversity ####
-# The procedure to generate this figure is rather long, so see
-# ./sequences/code/coverage_analysis.R
+### Figure 3 - Spacer diversity ####
+#### Mean relative frequencies of different spacer nos 
+#install.packages("wesanderson")
+library(wesanderson)
 
-### Figure 4 - Time-shift assay results ####
-# Overall - phage ####
+pal <- wes_palette("Royal1",4, type = "discrete")
+
+spacer_prop <- read.csv("./spacer_sequences/summary_data/spacer_prop.csv")
+spacer_prop$SpacerNumber %<>% relevel(ref="Three")
+spacer_prop$SpacerNumber %<>% relevel(ref="Two")
+spacer_prop$SpacerNumber %<>% relevel(ref="One")
+spacer_prop$SpacerNumber %<>% relevel(ref="Zero")
+spacer_prop %<>% complete(Timepoint, SpacerNumber)
+
+spacer_prop_plot <- ggplot(aes(x=Timepoint, y=Mean, group=SpacerNumber), data=spacer_prop)+
+  geom_col(aes(fill=SpacerNumber), colour="black",position=position_dodge(.9))+
+  geom_errorbar(aes(ymin=Lower, ymax=Upper), width=0, size=.8, position = position_dodge(.9))+
+  scale_y_continuous(breaks=seq(0,1,.25))+
+  coord_cartesian(ylim=c(0,1))+
+  
+  theme_cowplot()+
+  labs(x="Days post-infection (dpi)", y="Relative frequency")+
+  scale_x_discrete(breaks=c("t1", "t4", "t9"),
+                   labels=c("1", "4", "9"))+
+  scale_fill_manual(name="Number of\nspacers",
+                    values=pal)+
+  
+  theme(axis.title = element_text(face="bold", size=16),
+        axis.text = element_text(size=14),
+        legend.title = element_text(face='bold', size=14),
+        legend.title.align = 0.5,
+        legend.position = 'right',
+        legend.direction = "horizontal",
+        legend.key.width = unit(1, 'cm'),
+        legend.key.height = unit(1, 'cm'),
+        legend.text = element_text(size=14))+
+  NULL
+
+#spacer_prop_plot
+
+#### Spcaer mean counts spacers 
+spacer_counts <- read.csv("./spacer_sequences/summary_data/spacer_count.csv")
+spacer_counts$Timepoint %<>% as.factor
+spacer_counts$Group %<>% as.factor
+
+spacer_count_plot <- ggplot(aes(x=Timepoint, y=Mean, group=Group), data=spacer_counts)+
+  geom_point(size=3)+
+  # geom_path(linetype=2, size=.8 )+
+  geom_errorbar(aes(ymin=Lower, ymax=Upper), width=0, size=.8, position = position_dodge(.9))+
+  #scale_y_continuous(breaks=seq(0,1,.25))+
+  #coord_cartesian(ylim=c(0,1))+
+  
+  theme_cowplot()+
+  labs(x="Days post-infection (dpi)", y="Spacer number")+
+  #scale_x_discrete(breaks=c("t1", "t4", "t9"),
+  #                  labels=c("1", "4", "9"))+
+  #scale_fill_discrete(name="Number of\nspacers")+
+  
+  theme(axis.title = element_text(face="bold", size=16),
+        axis.text = element_text(size=14),
+        legend.title = element_text(face='bold', size=14),
+        legend.title.align = 0.5,
+        legend.position = 'right',
+        legend.key.width = unit(1, 'cm'),
+        legend.key.height = unit(1, 'cm'),
+        legend.text = element_text(size=14))+
+  NULL
+
+#spacer_count_plot
+
+#### PWD among spacers by replicate and timepoint 
+PWDs <- read.csv("./spacer_sequences/summary_data/diversity_all_combinations.csv")
+PWDs$Replicate %<>% as.factor()
+PWDs$Replicate %<>% relevel(ref="2.11")
+PWDs$Replicate %<>% relevel(ref="2.7")
+PWDs$Replicate %<>% relevel(ref="2.6")
+PWDs$Replicate %<>% relevel(ref="2.5")
+PWDs$Replicate %<>% relevel(ref="2.4")
+PWDs$Replicate %<>% relevel(ref="2.3")
+PWDs$Replicate %<>% relevel(ref="2.2")
+PWDs$Replicate %<>% relevel(ref="2.1")
+
+reps_og <- levels(PWDs$Replicate)
+reps_labs <- c(seq(1,8,1)) %>% as.character()
+
+PWDs %<>% complete(Replicate, Timepoint) #adds in NAs where data is missing
+
+PWDs$PWD<- ifelse(is.na(PWDs$PWD)==T, 0, PWDs$PWD) #convert those NAs to zeros so that bar widths make sense
+
+PWD_all <- ggplot(aes(x=Replicate, y=PWD), 
+                  data=PWDs)+
+  geom_col(aes(fill=Timepoint),
+           position=position_dodge(), colour="black")+
+  coord_cartesian(ylim=c(0,1))+
+  labs(y="Pairwise difference")+
+  scale_fill_discrete(breaks=c("t1", "t4", "t9"),
+                      labels=c("1", "4", "9"))+
+  scale_x_discrete(breaks=reps_og,
+                   labels=reps_labs)+
+  theme_cowplot()+
+  theme(axis.title = element_text(face="bold", size=16),
+        axis.text = element_text(size=14),
+        legend.title = element_text(face='bold', size=14),
+        legend.title.align = 0.5,
+        legend.direction = "horizontal",
+        legend.position = 'right',
+        legend.key.width = unit(1, 'cm'),
+        legend.key.height = unit(1, 'cm'),
+        legend.text = element_text(size=14))+
+  NULL
+#PWD_all
+
+#### Make and save Fig 3 
+
+spacer_legend <- get_legend(spacer_prop_plot)
+PWD_legend <- get_legend(PWD_all)
+
+Fig3Legends <- plot_grid(spacer_legend, PWD_legend,
+                     ncol=1, nrow=2)
+
+Fig3 <- plot_grid(spacer_count_plot,
+                          spacer_prop_plot+
+                            theme(legend.position = "none"),
+                          PWD_all+
+                            theme(legend.position = "none"),
+                          Fig3Legends,
+                          ncol=2, nrow=2, align = "hv", axis="l", labels=c("A", "B", "C"),
+                          rel_widths = c(1,1,1.4))
+#Fig3
+
+ggsave("Fig3.png", Fig3, path="./figs/paper/",
+       device="png", dpi=300, width=30, height=25, units = c("cm"))
+
+
+### Figure 4 - Spacer coverage ####
+# The procedure to generate this figure is rather long, so see
+# ./spacer_sequences/code/coverage_analysis.R
+
+### Figure 5 - Protospacer data ####
+#### Figure 5A & B
+proto_counts <- read.csv("./phage_sequences/summary_data/proto_seq_summary_stats.csv")
+proto_counts %<>% filter(Mutation!=c("Total"))
+proto_counts$Mutation %<>% relevel(ref="PAM")
+proto_counts$Mutation %<>% relevel(ref="Sequence")
+proto_counts$Mutation %<>% relevel(ref="Protospacer-associated")
+proto_counts$Mutation %<>% relevel(ref="Random")
+proto_counts$Mutation %<>% relevel(ref="None")
+
+just_proto <- filter(proto_counts, Mutation%in%c("Sequence", "PAM"))
+general_proto <- filter(proto_counts, Mutation%in%c("None", "Random", "Protospacer-associated"))
+
+pal2 <- wes_palette("Royal1",2, type = "discrete")
+pal3 <- wes_palette("Royal1",3, type = "discrete")
+
+Fig5A <- ggplot(aes(x=Mutation, y=Count, fill=Mutation), data=general_proto)+
+  geom_col(position = position_dodge(1), colour="black", width=.5)+
+  theme_cowplot()+
+  labs(x="Mutation", y="Count")+
+  scale_x_discrete(breaks=c("None", "Random", "Protospacer-associated"),
+                  labels=c("None", "Random", "Protospacer-\nassociated"))+
+  scale_fill_manual(values=pal3)+
+  coord_cartesian(ylim=c(0,50))+
+  scale_y_continuous(breaks=c(seq(0,50,10)))+
+  
+  theme(axis.title = element_text(face="bold", size=16),
+        axis.text = element_text(size=14),
+        legend.position = "none")+
+  NULL
+#Fig5A
+
+Fig5B <- ggplot(aes(x=Mutation, y=Count, fill=Mutation), data=just_proto)+
+  geom_col(position = position_dodge(1), colour="black", width=.5)+
+  theme_cowplot()+
+  labs(x="Location of SNP in protospacer", y="Count")+
+  #scale_x_discrete(breaks=c("t1", "t4", "t9"),
+  #                 labels=c("1", "4", "9"))+
+  scale_fill_manual(values=pal2)+
+  coord_cartesian(ylim=c(0,50))+
+  scale_y_continuous(breaks=c(seq(0,50,10)))+
+  
+  theme(axis.title = element_text(face="bold", size=16),
+        axis.text = element_text(size=14),
+        legend.position = "none")+
+  NULL
+Fig5B
+
+#### Fig 5C
+
+all_sums <- read.csv("./phage_sequences/summary_data/all_summaries.csv")
+all_sums$Mutation %<>% relevel(ref="Protospacer-associated")
+all_sums$Mutation %<>% relevel(ref="Random")
+all_sums$Mutation %<>% relevel(ref="None")
+
+
+Fig5C <- ggplot(aes(x=Mutation, y=Mean), data=all_sums)+
+  geom_point(size=3)+
+  geom_errorbar(aes(ymin=Lower, ymax=Upper), size=.8, width=0)+
+  coord_cartesian(ylim=c(0,1))+
+  #ggtitle("Proportion of hosts that were\ninfected by or resisted a phage \nwith a mutation")+
+  labs(x="Mutation", y="Probability of infection")+
+  scale_x_discrete(breaks=c("None", "Random", "Protospacer-associated"),
+                   labels=c("None", "Random", "Protospacer-\nassociated"))+
+  theme_cowplot()+
+  theme(axis.text = element_text(size=14),
+        axis.title = element_text(face="bold", size=16))+
+  NULL
+#Fig5C
+
+#### Fig 5D
+
+proto_targets <- read.csv("./phage_sequences/summary_data/infections_targetted_sum.csv")
+proto_targets$NotTargetted %<>% as.factor()
+
+Fig5D <- ggplot(aes(x=NotTargetted, y=Mean), data=proto_targets)+
+  geom_point(size=3)+
+  geom_errorbar(aes(ymin=Lower, ymax=Upper), size=.8, width=0)+
+  coord_cartesian(ylim=c(0,1))+
+  #ggtitle("Proportion of hosts that were\ninfected by or resisted a phage \nwith a mutation")+
+  labs(x="Number of host CRISPR spacers phage\nhad not evolved SNPs against", y="Probability of infection")+
+  #facet_wrap(~Location,scales = "free_x")+
+  theme_cowplot()+
+  theme(axis.text = element_text(size=14),
+        axis.title = element_text(face="bold", size=16))+
+  NULL
+
+#### Make and save Fig 5
+Fig5 <- plot_grid(Fig5A+xlab(""), Fig5B+ylab(""), 
+                  Fig5C, Fig5D+ylab(""),
+                  ncol=2, nrow=2,
+                  rel_widths = c(.9,1,.9,1), align = "hv",
+                  labels = c("A", "B", "C", "D"))
+#Fig5
+
+ggsave("Fig5.png", Fig5, path="./figs/paper/",
+       device="png", dpi=300, width=30, height=25, units = c("cm"))
+
+### Figure 6 - Time-shift assay results ####
+# Overall - phage ##
 timeshift_overall <- read.csv("./time_shift/summary_data/timeshift_means.csv")
 
 timeshift_overall$Environment %<>% relevel(ref="Future")
@@ -229,8 +483,13 @@ coevo_infect_plot <- ggplot(aes(y=Mean.Infect, x=Environment, group=Group), data
   coord_cartesian(ylim=c(0,1))+
   scale_y_continuous(breaks=c(seq(0, 1, 0.25)))
 
-# Overall - host ####
-coevo_resist_plot <- ggplot(aes(y=Mean.Resist, x=Environment, group=Group), data=timeshift_overall)+
+# Overall - host ##
+timeshift_host <- read.csv("./time_shift/summary_data/timeshift_means_phage_bkgrnd.csv")
+timeshift_host$Environment %<>% relevel(ref="Future")
+timeshift_host$Environment %<>% relevel(ref="Present")
+timeshift_host$Environment %<>% relevel(ref="Past")
+
+coevo_resist_plot <- ggplot(aes(y=Mean.Resist, x=Environment, group=Group), data=timeshift_host)+
   geom_point(position = position_dodge(.5),
              size=1.5)+
   geom_errorbar(aes(ymin=Resist.Lower, ymax=Resist.Upper), 
@@ -238,7 +497,7 @@ coevo_resist_plot <- ggplot(aes(y=Mean.Resist, x=Environment, group=Group), data
                 width=0, size=1)+
   geom_path(stat="identity", size=.8, linetype=2)+
   theme_cowplot()+
-  labs(x="Host background", y="Proportion of\nhosts resistant")+
+  labs(x="Phage background", y="Proportion of\nhosts resistant")+
   theme(axis.title = element_text(face="bold", size=16))+
   theme(axis.text = element_text(size=14))+
   theme(legend.title = element_text(face='bold', size=14))+
@@ -251,7 +510,7 @@ coevo_resist_plot <- ggplot(aes(y=Mean.Resist, x=Environment, group=Group), data
   scale_y_continuous(breaks=c(seq(0, 1, 0.25)))+
   coord_cartesian(ylim=c(0,1))
 
-# By timepoint - phage ####
+# By timepoint - phage ##
 timepoint_TS_contrasts <- read.csv("./time_shift/summary_data/timepoint_contrasts.csv")
 infect_plot <- ggplot(aes(y=Mean.Infect, x=Host, Group=Phage), data=timepoint_TS_contrasts)+
   geom_bar(stat="identity",aes(fill=Phage), position = position_dodge(.5),
@@ -266,7 +525,7 @@ infect_plot <- ggplot(aes(y=Mean.Infect, x=Host, Group=Phage), data=timepoint_TS
                    labels=c("1", "4", "9"))+
   coord_cartesian(ylim=c(0,1))+
   scale_y_continuous(breaks=c(seq(0,1,0.25)))+
-  scale_fill_discrete(name="Phage\nbackground",
+  scale_fill_discrete(name="Phage or host\nbackground",
                       breaks=c("t1", "t4", "t9"),
                       labels=c("1", "4", "9"))+
   
@@ -280,21 +539,21 @@ infect_plot <- ggplot(aes(y=Mean.Infect, x=Host, Group=Phage), data=timepoint_TS
   theme(legend.text = element_text(size=14))
 
 
-# By timepoint - host ####
-resist_plot <- ggplot(aes(y=Mean.Resist, x=Host, Group=Phage), data=timepoint_TS_contrasts)+
-  geom_bar(stat="identity",aes(fill=Phage), position = position_dodge(.5),
+# By timepoint - host ##
+resist_plot <- ggplot(aes(y=Mean.Resist, x=Phage, Group=Host), data=timepoint_TS_contrasts)+
+  geom_bar(stat="identity",aes(fill=Host), position = position_dodge(.5),
            width=.5)+
   geom_errorbar(aes(ymin=Resist.Lower, ymax=Resist.Upper), 
                 position = position_dodge(.5),
                 width=0, size=1)+
   geom_path(stat="identity")+
   theme_cowplot()+
-  labs(x="Host background", y="Proportion of\nhosts resistant")+
+  labs(x="Phage background", y="Proportion of\nhosts resistant")+
   scale_x_discrete(breaks=c("t1", "t4", "t9"),
                    labels=c("1", "4", "9"))+
   coord_cartesian(ylim=c(0,1))+
   scale_y_continuous(breaks=c(seq(0,1,0.25)))+
-  scale_fill_discrete(name="Phage\nbackground",
+  scale_fill_discrete(name="Host\nbackground",
                       breaks=c("t1", "t4", "t9"),
                       labels=c("1", "4", "9"))+
   
@@ -307,11 +566,11 @@ resist_plot <- ggplot(aes(y=Mean.Resist, x=Host, Group=Phage), data=timepoint_TS
   theme(legend.key.height = unit(1, 'cm'))+
   theme(legend.text = element_text(size=14))
 
-# Phage FSD scores ####
+# Phage FSD scores ##
 FSD_means <- read.csv("./time_shift/summary_data/FSD_means.csv")
 FSD_phage <- ggplot(aes(x=Timepoint, y=Phage), data=FSD_means)+
   geom_point(size=3)+
-  geom_errorbar(aes(ymin=Phage-(1.96*Phage.SE), ymax=Phage+(1.96*Phage.SE)),
+  geom_errorbar(aes(ymin=Phage.Lower, ymax=Phage.Upper),
                 size=.8, width=0)+
   theme_cowplot()+
   labs(y="MS(GxE)/MS(E) phage")+
@@ -322,14 +581,15 @@ FSD_phage <- ggplot(aes(x=Timepoint, y=Phage), data=FSD_means)+
   theme(axis.title = element_text(face="bold", size=16))+
   theme(axis.text = element_text(size=14))+
   theme(plot.title = element_text(hjust=0.5, face="bold"))+
-  coord_cartesian(ylim=c(0,0.21166618))
+  coord_cartesian(ylim=c(0,0.3727621))+
+  NULL
 FSD_phage
 
 
-# Host FSD scores ####
+# Host FSD scores ##
 FSD_host <- ggplot(aes(x=Timepoint, y=Host), data=FSD_means)+
   geom_point(size=3)+
-  geom_errorbar(aes(ymin=Host-(1.96*Host.SE), ymax=Host+(1.96*Host.SE)),
+  geom_errorbar(aes(ymin=Host.Lower, ymax=Host.Upper),
                 size=.8, width=0)+
   theme_cowplot()+
   labs(y="MS(GxE)/MS(E) host")+
@@ -340,72 +600,33 @@ FSD_host <- ggplot(aes(x=Timepoint, y=Host), data=FSD_means)+
   theme(axis.title = element_text(face="bold", size=16))+
   theme(axis.text = element_text(size=14))+
   theme(plot.title = element_text(hjust=0.5, face="bold"))+
-  coord_cartesian(ylim=c(0, 0.21166618))
+  coord_cartesian(ylim=c(0, 0.3727621))+
+  NULL
 FSD_host
 
-# Make Fig4 ####
+# Make Fig6 ##
 
-Fig4_left <- plot_grid(coevo_infect_plot, 
+Fig6_left <- plot_grid(coevo_infect_plot, 
                        infect_plot+
-                          theme(legend.position = c(0.5, -.35),
+                          theme(legend.position = c(0.65, -.25),
                                 legend.background = element_blank(),
                                 legend.direction = "horizontal",
-                                plot.margin = unit(c(0, 0, 2, 0), "cm")), FSD_phage,
-                       ncol=1, align = "hv", axis = "l", labels=c("A", "C", "E"))
+                                plot.margin = unit(c(0, 0, 2, 0), "cm")),
+                       ncol=1, align = "hv", axis = "l", labels=c("A", "C"))
 
-Fig4_right <- plot_grid(coevo_resist_plot, 
+Fig6_right <- plot_grid(coevo_resist_plot, 
                         resist_plot+
                             theme(legend.position = "none",
                                   plot.margin = unit(c(0, 0, 2, 0), "cm")), 
-                        FSD_host,
-                  ncol=1, align = "hv", axis = "l", labels = c("B", "D", "F"))
+                  ncol=1, align = "hv", axis = "l", labels = c("B", "D"))
 
-Fig4 <- plot_grid(Fig4_left, Fig4_right,
+Fig6 <- plot_grid(Fig6_left, Fig6_right,
                   ncol=2, align = "hv", axis="l")
-Fig4
+Fig6
 
-ggsave("Fig4.png", Fig4, path="./figs/paper/",
-       device="png", dpi=300, width=25, height=30, units = c("cm"))
-#### Figure 5 - Phage and host genotype dynamics ####
+ggsave("Fig6.png", Fig6, path="./figs/paper/",
+       device="png", dpi=300, width=27, height=23, units = c("cm"))
 
-#### Relative frequencies of spacers ####
-unique_spacers <- read.csv("./sequences/summary_data/unique_spacers_noseqs.csv")
 
-unique_spacers$RelativeFrequency <- unique_spacers$n/12
 
-unique1 <- unique_spacers %>% 
-  group_by(Timepoint, SpacerMiddle) %>% 
-  slice(1L)
-
-unique1$SpacerMiddle %<>% as.factor()
-
-unique1$group[unique1$SpacerMiddle %in% c("883", "10732", "23585", "32567")] <- c("0.08", "",
-                                                                                  "", "",
-                                                                                  "0.83","1", 
-                                                                                  "1", "0.08")
-
-spacer_RelFreq <- ggplot(aes(y=RelativeFrequency, x=Timepoint, Group=SpacerMiddle), data=unique1)+
-  geom_point(stat="identity", aes(colour=SpacerMiddle), position=position_dodge(.3), size=2.5)+
-  geom_path(aes(group=SpacerMiddle), linetype=2, position = position_dodge(.3), size=.7)+
-  geom_text(aes(label=group), position = position_identity(), size=5, face="bold")+
-  #facet_wrap(~Replicate)+
-  #geom_text(aes(label=group))+
-  theme_cowplot()+
-  labs(x="Timepoint", y="Frequency")+
-  scale_x_discrete(breaks=c("t1", "t4", "t9"),
-                   labels=c("1", "4", "9"))+
-  theme(legend.position = "none",
-        panel.grid.minor = element_blank(),
-        axis.title = element_text(size=20),
-        axis.title.y = element_text(margin=margin(r=10)),
-        axis.text = element_text(size=16))
-
-spacer_RelFreq
-
-Fig5 <- plot_grid(spacer_RelFreq, #phage_RelFreq
-                  nrow=2, align = "hv", labels = c("A", "B"))
-Fig5
-
-ggsave("Fig5.png", Fig5, path="./figs/paper/",
-       device="png", dpi=300, width=25, height=30, units = c("cm"))
 

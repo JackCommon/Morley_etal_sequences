@@ -21,10 +21,17 @@ library(magrittr)
 library(cowplot)
 
 #### Data ####
-data = read.csv("./sequences/summary_data/all_spacer_data.csv", header=T)
+data <- read.csv("./spacer_sequences/summary_data/all_spacer_data.csv", header=T)
 data$Replicate %<>% as.factor
 data$Clone %<>% as.factor()
 data$SpacerNumber %<>% as.factor()
+
+medians <- c()
+for(i in seq(1,212,1)){
+  medians[i] <- median(c(data[i,7], data[i,8]))
+}
+data$SpacerMiddle <- medians %>% as.integer()
+
 
 data$Replicate %<>% relevel(ref="2.11")
 data$Replicate %<>% relevel(ref="2.7")
@@ -499,7 +506,7 @@ plot13 <- ggplot(aes(x=SpacerMiddle, group=Locus), data=subset(t9, Replicate=="2
         panel.grid.major = element_blank())
 ### Arrange plots ####
 # Extract the legend from plot8 (with both CR1 and CR3 spacers) for later use
-legend <- gtable_filter(ggplot_gtable(ggplot_build(plot8)), "guide-box")
+#legend <- gtable_filter(ggplot_gtable(ggplot_build(plot8)), "guide-box")
 
 blank <- ggplot(aes(x=SpacerMiddle, group=Locus), data=subset(t4, Replicate=="2.4"))+
   labs(x="")+
@@ -509,7 +516,7 @@ blank <- ggplot(aes(x=SpacerMiddle, group=Locus), data=subset(t4, Replicate=="2.
   
   theme(panel.grid.minor= element_blank(),
         panel.grid.major = element_blank())
-blank
+#blank
 
 t1_toprow <- plot_grid(plot1+
                          xlab("")+ylab("T1")+ggtitle("")+
@@ -517,8 +524,9 @@ t1_toprow <- plot_grid(plot1+
                                axis.title.y = element_text(colour="red", size=40, angle = 0, vjust=0.5),
                                axis.text = element_text(size=30)),
                        blank, blank, blank,
-                       labels = "A", label_size = 40,
+                       labels = c("A"), label_size = 40,
                        nrow=1, scale=c(1,100,1,1))
+quartz()
 t1_toprow
 
 t4_midrow <- plot_grid(plot2+labs(x="", y="T4")+ggtitle("")+
@@ -582,17 +590,17 @@ all_legend
 # Detach cowplot as it blocks ggsave
 detach("package:cowplot")
 
-ggsave("coverage_plot.png", plot1, path="./figs/",
-       device="png", dpi=300,
-       height=13, width=30, unit=c("cm"))
+#ggsave("coverage_plot.png", plot1, path="./figs/",
+#       device="png", dpi=300,
+#       height=13, width=30, unit=c("cm"))
 
-ggsave("Fig3.png", all_legend, path="./figs/paper/",
+ggsave("Fig4.png", all_legend, path="./figs/paper/",
        device="png", dpi=300,
        height=100, width=75, unit=c("cm"))
 
-ggsave("legend.png", legend, path="./figs/",
-       device="png", dpi=900,
-       height=2, width=10, unit=c("cm"))
+#ggsave("legend.png", legend, path="./figs/",
+#       device="png", dpi=900,
+ #      height=2, width=10, unit=c("cm"))
  
 
 
