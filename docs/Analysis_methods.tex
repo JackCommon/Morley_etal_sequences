@@ -64,6 +64,7 @@ Twelve clones from each replicate at the three timepoints considered had their t
 Phage survival over the course of the experiment was analysed using a Cox proportional hazards model from the \texttt{survival} package \citep{survival}. Hazard ratio coefficients express the relative risk of phage extinction over time. 
 
 \section*{Evolution of infectivity and resistance}
+
 To measure the evolution of phage infectivity in terms of host range, we first calculated the proportion of all host genotypes infected by a given phage genotype in each replicate at each timepoint. To measure the evolution of host resistance, the proportion of all phage genotypes resisted by a given host genotype was also calculated. Infectivity or resistance were analysed in a Generalized Linear Model (GLM) with genotype as a fixed effect and a binomial family with a logit link function. Mean infectivity or resistance was then analysed for each timepoint in a Generalized Linear Mixed Model (GLMM) using the \texttt{lme4} package \citep{lme4}, with timepoint as a fixed effect and replicate as random effect. To account for zero-inflated residuals, a negative binomial distribution was assumed. Model coefficients and confidence intervals were transformed from logits to probabilities prior to presentation. 
 
 \section*{Coevolutionary dynamics}
