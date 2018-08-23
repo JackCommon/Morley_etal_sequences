@@ -59,9 +59,14 @@ timepoint_names_facet = list(
 )
 
 timepoint_names_legend = c("1","4","9")
-
 timepoint_labeller = function(variable, value) {
   return(timepoint_names_facet[value])
+}
+
+rep_og <- levels(data$Replicate)
+rep_labs <- c(seq(1,8,1)) %>% as.character()
+rep_labeller = function(variable, value) {
+  return(rep_labs[value])
 }
 
 ##### Figures ####
@@ -602,6 +607,3 @@ ggsave("Fig4.png", all_legend, path="./figs/paper/",
 #       device="png", dpi=900,
  #      height=2, width=10, unit=c("cm"))
  
-
-
-
